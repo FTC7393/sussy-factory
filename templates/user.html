@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eV 7393's amogus emporium!</title>
+    <style>
+body {
+    margin: 0;
+}
+    </style>
+  </head>
+  <body>
+    <a href="/logout">logout</a><br/>
+    <br/><br/>
+    <form id="teamForm">
+      <label>team type and number: <input type="text" id="team" name="team" /></label><br/>
+      <input id="save" type="submit" value="save" /><br/>
+    </form>
+    <br/><br/>
+    <h2>Customize Your Amogus</h2>
+    <form id="myForm">
+      <label>top text: <input type="text" id="top_text" name="top_text" value="eV" /></label><br/>
+      <label>bottom text (optional): <input type="text" id="bottom_text" name="bottom_text" value="7393" /></label><br/>
+      <label>shoes?<input type="checkbox" id="shoes" name="shoes"></label><br/>
+      <input id="preview" type="submit" value="preview" /><br/>
+      <p>If no bottom text is provided, the top text will be moved to the middle.</p>
+      <p>This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
+      <p style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
+    </form>
+    color of the day: <span id="color_of_the_day"></span>
+    <br/><br/>
+    <input id="submit" type="submit" value="submit" onclick="submit()" /><br/>
+    <br/><br/>
+
+    download STL: <a id="download" href=""></a>
+    <div id="stl_cont" style="width: 100vw; height: 80vh; overflow: hidden;"></div>
+    <script src="/js/stl_viewer.min.js"></script>
+
+    <script>
+function myRequest(url, func) {
+    console.log(url)
+    let xhr = new XMLHttpRequest();
+    xhr.open('get', url);
+    xhr.send();
+
+    xhr.onload = function () {
+        console.log(xhr.response);
+        func(xhr.response);
+    };
+}
+
+function load_callback() {
+    //reset the camera to the initial state, or store the initial state if it isn't set up yet
+    if (initial_camera_state === null) {
+        initial_camera_state = stl_viewer.get_camera_state();
+    } else {
+        stl_viewer.set_camera_state(initial_camera_state);
+    }
+
+    //rotate to the correct position from the initial camera state to get a good view of the text
+    stl_viewer.rotate(0, Math.PI/2, Math.PI, -0.5);
+    stl_viewer.set_auto_rotate(true);
+
+    myRequest('/color_of_the_day', (res) => {
+        document.getElementById('color_of_the_day').style.backgroundColor = res;
+        document.getElementById('color_of_the_day').innerText = res;
+        stl_viewer.set_color(0, res)
+    });
+}
+
+var stl_viewer = null;
+var initial_camera_state = null;
+
+myRequest('/user_stl_and_team', (res) => {
+    const json = JSON.parse(res);
+    var team = json[0];
+    var status = json[1];
+    var stl_url = json[2];
+    document.getElementById('team').value = team;
+    if (status === 'submitted') {
+        document.getElementById('submit').disabled = true;
+        document.getElementById('submit').value = 'submitted';
+    }
+    document.getElementById('download').href = stl_url;
+    document.getElementById('download').innerText = stl_url;
+    //stl_viewer = new StlViewer(document.getElementById("stl_cont"), {models: [{id: 0, filename: "/stl_src/default-ev-7393.stl", rotationx: Math.PI/2, rotationy: Math.PI, rotationz: -0.5}], model_loaded_callback: load_callback, auto_rotate: true});
+    stl_viewer = new StlViewer(document.getElementById("stl_cont"), {models: [{id: 0, filename: stl_url}], model_loaded_callback: load_callback, auto_rotate: true});
+    //stl_viewer = new StlViewer(document.getElementById("stl_cont"), {models: []});
+    //stl_viewer.all_loaded_callback(rotate);
+    document.getElementById('stl_cont').addEventListener('mousedown', () => { //stop auto rotate when user moves it
+    // stl_viewer.set_on_model_mousedown(() => {
+        stl_viewer.set_auto_rotate(false);
+    });
+});
+
+document.getElementById("teamForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const team = document.getElementById('team').value;
+    document.getElementById('save').value = 'saving...';
+    myRequest(`/team?team=${encodeURIComponent(team)}`, () => {
+        document.getElementById('save').value = 'saved!';
+        setTimeout(() => {
+            document.getElementById('save').value = 'save';
+        }, 1000);
+    });
+});
+
+
+document.getElementById("myForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    document.getElementById('preview').disabled = true;
+    document.getElementById('preview').value = 'generating...';
+    document.getElementById('submit').disabled = true;
+    const top_text = document.getElementById('top_text').value;
+    const bottom_text = document.getElementById('bottom_text').value;
+    const shoes = document.getElementById('shoes').checked;
+    myRequest(`/gen_stl?top_text=${encodeURIComponent(top_text)}&bottom_text=${encodeURIComponent(bottom_text)}&shoes=${encodeURIComponent(shoes)}`, (res) => {
+        const stl_url = res;
+        document.getElementById('preview').disabled = false;
+        document.getElementById('preview').value = 'preview';
+        if (document.getElementById('submit').value !== 'submitted') {
+            document.getElementById('submit').disabled = false;
+        }
+        document.getElementById('download').href = stl_url;
+        document.getElementById('download').innerText = stl_url;
+//        stl_viewer.remove_model(0);
+        stl_viewer.clean();
+        stl_viewer.add_model({id: 0, filename: stl_url});
+    });
+});
+
+function submit() {
+    if (confirm("Are you sure you want to submit the current model? You can only submit once and you cannot change anything after.")){
+        document.getElementById('submit').disabled = true;
+        document.getElementById('submit').value = 'submitting...';
+        myRequest('/submit', (res) => {
+            if (res === 'already submitted') {
+                document.getElementById('submit').value = 'submitted';
+                alert('You already submitted a model, you may not change it after.');
+            } else {
+                document.getElementById('submit').value = 'submitted';
+                alert('Submitted successfully.');
+            }
+        });
+    }
+}
+
+//TODO loading bar
+//TODO should we warn the user if they change the text and don't preview before submitting? maybe gray out submit button if any text changes?
+    </script>
+  </body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eV 7393's amogus emporium!</title>
+  </head>
+  <body>
+    <a href="/logout">logout</a><br/>
+    <button onclick="gen_users()">generate users</button> <input id="num_users" type="number" value="12" style="width: 30px">
+    <label>color of the day: <input id="color_of_the_day" type="color"></label>
+    <details open>
+        <summary>print queue</summary>
+        <ul id="print"></ul>
+    </details>
+    <details>
+        <summary id="users">users</summary>
+        <div id="qr" style="margin: 20px"></div>
+    </details>
+    <script src="/js/jquery-1.12.4.min.js"></script>
+    <script src="/js/jquery-qrcode.min.js"></script>
+    <script src="/js/jspdf.umd.min.js"></script>
+
+    <script>
+
+function myRequest(url, func) {
+    console.log(url)
+    let xhr = new XMLHttpRequest();
+    xhr.open('get', url);
+    xhr.send();
+
+    xhr.onload = function () {
+        console.log(xhr.response);
+        func(xhr.response);
+    };
+}
+
+function sort(q) {
+    var sort_by_name = function(a, b) {
+        return a.innerHTML.toLowerCase().localeCompare(b.innerHTML.toLowerCase());
+    }
+
+    var list = $(q).get();
+    list.sort(sort_by_name);
+    for (var i = 0; i < list.length; i++) {
+        list[i].parentNode.appendChild(list[i]);
+    }
+}
+
+var base_url = '';
+var user_creds_str = '';
+var user_creds = {};
+
+function get_user_creds(callback) { //callback is optional
+    myRequest(`/admin/user_creds`, (res) => {
+        if (res !== user_creds_str) {
+            console.log('user data has changed, rendering qr codes');
+            user_creds_str = res;
+            user_creds = JSON.parse(res);
+            document.getElementById('users').innerText = `users (${Object.keys(user_creds).length})`;
+            render();
+            if (callback) {
+                callback();
+            }
+        }
+    });
+}
+
+function render() {
+    document.getElementById('qr').innerHTML = '';
+    document.getElementById('print').innerHTML = '';
+    Object.keys(user_creds).forEach(username => {
+        const password = user_creds[username].password;
+        const team = user_creds[username].team;
+        var text = username + ' never logged in ';
+        var bgcolor = '#ff0'; //yellow
+        if (user_creds[username].logged_in) {
+            bgcolor = '#0ff'; //indigo
+            text = username + ' has logged in ';
+        }
+        if (user_creds[username].generated_stl) {
+            bgcolor = '#f0f'; //magenta
+            text = username + ' generated STL preview ';
+        }
+        const submitted_stl_url = user_creds[username].submitted_stl_url;
+        const submitted_time = user_creds[username].submitted_time;
+        const printed = user_creds[username].printed;
+        const taken = user_creds[username].taken;
+        if (submitted_stl_url) {
+            bgcolor = '#f00'; //red
+            text = username + ' submitted to print ';
+            if (!taken) {
+                const print_item = document.createElement("li");
+                print_item.innerText = `time: ${new Date(submitted_time)}, user: ${username}, team: ${team}, download: `;
+                const elem_stl_a = document.createElement("a");
+                const stl_basename = submitted_stl_url.split('/').reverse()[0];
+                elem_stl_a.innerText = `${stl_basename}`;
+                elem_stl_a.href = submitted_stl_url;
+                print_item.appendChild(elem_stl_a);
+                const print_queue_button = document.createElement("button");
+                if (!printed) {
+                    print_queue_button.innerText = "print done"
+                    print_queue_button.onclick = () => {
+                        myRequest(`/admin/print_done?username=${username}`, () => {
+                            get_user_creds();
+                        });
+                    }
+                } else {
+                    print_queue_button.innerText = "team took the print"
+                    print_queue_button.onclick = () => {
+                        myRequest(`/admin/taken?username=${username}`, () => {
+                            get_user_creds();
+                        });
+                    }
+                }
+                print_item.appendChild(print_queue_button);
+                document.getElementById('print').appendChild(print_item);
+            }
+        }
+        if (printed) {
+            bgcolor = '#fa0'; //orange
+            text = username + ' printed and notified ';
+        }
+        if (taken) {
+            bgcolor = '#0f0'; //green
+            text = username + ' took the print ';
+        }
+
+        text = 'team: ' + team + ', user: ' + text;
+
+        const link = `${base_url}/login?username=${username}&password=${password}`;
+        const elem = document.createElement("div");
+        elem.style.border = '1px solid black';
+        elem.style.padding = '20px';
+        elem.style.margin = '5px';
+        elem.id = username;
+        document.getElementById('qr').appendChild(elem);
+        const elem_text = document.createElement("p");
+        elem_text.innerHTML = text;
+        const elem_delete = document.createElement("button");
+        elem_delete.innerHTML = 'delete';
+        elem_delete.onclick = () => {delete_user(username)};
+        elem.appendChild(elem_delete);
+        elem.appendChild(elem_text);
+        const elem_login = document.createElement("a"); //TODO tmp because it logs out the admin
+        elem_login.href = link; //tmp
+        elem_login.innerHTML = 'login (use incognito)'; //tmp
+        elem_text.appendChild(elem_login); //tmp
+        $(`#${username}`).qrcode({
+            text: link,
+            // 0: normal
+            // 1: label strip
+            // 2: label box
+            mode: 2,
+            label: 'eV 7393',
+            fontname: 'roboto',
+            fontcolor: '#000',
+            background: bgcolor,
+            ecLevel: 'H',
+            mSize: 0.12,
+        });
+        // elem.children[elem.children.length-1].id = `${username}_canvas`;
+        // $("#qr").
+    });
+    sort('#print > li')
+    if (document.getElementById('print').children.length === 0) {
+        document.getElementById('print').innerText = 'print queue is empty';
+    }
+}
+
+myRequest('/base_url', (res) => {
+    base_url = res;
+    get_user_creds();
+    setInterval(() => {
+        get_user_creds();
+    }, 5000);
+});
+
+myRequest('/color_of_the_day', (res) => {
+    document.getElementById('color_of_the_day').value = res;
+});
+
+document.getElementById('color_of_the_day').onchange = () => {
+    const color_of_the_day = document.getElementById('color_of_the_day').value;
+    myRequest(`/admin/set_color_of_the_day?color_of_the_day=${encodeURIComponent(color_of_the_day)}`, () => {});
+};
+
+function last_child(elem) {
+    return elem.children[elem.children.length-1];
+}
+
+function gen_users() {
+    const num = document.getElementById('num_users').value;
+    myRequest(`/admin/new_users?num=${num}`, (res) => {
+        const users = JSON.parse(res);
+        get_user_creds(() => {
+            //download pdf with new user QR codes to print
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const width = 50;
+            const height = 50;
+            var x = 18;
+            var y = 18;
+            var addPage = false;
+            users.forEach(username => {
+                if (addPage) {
+                    doc.addPage();
+                    addPage = false;
+                }
+                const canvas = last_child(document.getElementById(username))
+                doc.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, width, height);
+                doc.text('Scan this QR code to customize and order your\n3D printed among us character, to be printed in\nthe pit area of FTC 7393 electron Volts.', x+60, y+5);
+
+                //qr codes in a list, to have room for text
+                y += 60;
+                if (y > 200) {
+                    addPage = true;
+                    y = 18;
+                }
+                
+                //qr codes in a grid
+                // x += 60;
+                // if (x > 140) {
+                //     x = 18;
+                //     y += 60;
+                //     if (y > 200) {
+                //         addPage = true;
+                //         y = 18;
+                //     }
+                // }
+            });
+            doc.save("qr-codes.pdf");
+        });
+    });
+}
+
+function delete_user(username) {
+    myRequest(`/admin/delete_user?username=${username}`, () => {
+        get_user_creds();
+    });
+}
+
+    </script>
+  </body>
+</html>

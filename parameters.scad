@@ -1,0 +1,1 @@
+dir = "."; top_text = "eV"; bottom_text = "7393"; shoes = false;
