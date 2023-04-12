@@ -272,6 +272,7 @@ def admin_print_done():
     user_data = get_user_data(username)
     user_data['printed'] = True
     set_user_data(username, user_data)
+    #TODO send a text/email?
     return 'ok'
 
 @app.route('/admin/taken')
@@ -284,6 +285,15 @@ def admin_taken():
     user_data['taken'] = True
     set_user_data(username, user_data)
     return 'ok'
+
+@app.route('/is_printed_and_not_taken')
+@flask_login.login_required
+def is_printed_and_not_taken():
+    username = flask_login.current_user.id
+    user_data = get_user_data(username)
+    printed = user_data.get('printed', False)
+    taken = user_data.get('taken', False)
+    return json.dumps(printed and not taken)
 
 @app.route('/color_of_the_day')
 def color_of_the_day():

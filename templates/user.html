@@ -10,7 +10,7 @@ body {
     </style>
   </head>
   <body>
-    <a href="/logout">logout</a><br/>
+    <a href="/logout">logout</a> &nbsp; &nbsp; &nbsp; <a href="https://ftc7393.org">ftc7393.org</a> &nbsp; &nbsp; &nbsp; <a target="_blank" href="https://github.com/fTC7393/sussy-factory">source code</a><br/>
     <br/><br/>
     <form id="teamForm">
       <label>team type and number: <input type="text" id="team" name="team" /></label><br/>
@@ -80,6 +80,7 @@ myRequest('/user_stl_and_team', (res) => {
     if (status === 'submitted') {
         document.getElementById('submit').disabled = true;
         document.getElementById('submit').value = 'submitted';
+        check_if_print_done_loop();
     }
     document.getElementById('download').href = stl_url;
     document.getElementById('download').innerText = stl_url;
@@ -139,10 +140,23 @@ function submit() {
                 alert('You already submitted a model, you may not change it after.');
             } else {
                 document.getElementById('submit').value = 'submitted';
-                alert('Submitted successfully.');
+                alert('Submitted successfully. Keep this page open, you will receive an alert when the print is ready to pick up.');
             }
+            check_if_print_done_loop();
         });
     }
+}
+
+function check_if_print_done_loop() {
+    setInterval(() => {
+        console.log('print done?')
+        myRequest('/is_printed_and_not_taken', (res) => {
+            const is_printed_and_not_taken = JSON.parse(res);
+            if (is_printed_and_not_taken) {
+                alert("Your print is done! Go pick it up at FTC 7393's pit area.")
+            }
+        });
+    }, 5000);
 }
 
 //TODO loading bar
