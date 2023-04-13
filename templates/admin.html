@@ -6,7 +6,7 @@
   </head>
   <body>
     <a href="/logout">logout</a> &nbsp; &nbsp; &nbsp; <a href="https://ftc7393.org">ftc7393.org</a> &nbsp; &nbsp; &nbsp; <a target="_blank" href="https://github.com/fTC7393/sussy-factory">source code</a><br/>
-    <button onclick="gen_users()">generate users</button> <input id="num_users" type="number" value="12" style="width: 30px">
+    <button onclick="gen_users()">generate users</button> <input id="num_users" type="number" value="12" style="width: 3em">
     <label>color of the day: <input id="color_of_the_day" type="color"></label>
     <details open>
         <summary>print queue</summary>
@@ -100,7 +100,9 @@ function render() {
                 if (!printed) {
                     print_queue_button.innerText = "print done"
                     print_queue_button.onclick = () => {
+                        print_queue_button.disabled = true;
                         myRequest(`/admin/print_done?username=${username}`, () => {
+                            print_queue_button.disabled = false;
                             get_user_creds();
                         });
                     }

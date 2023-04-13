@@ -6,6 +6,8 @@ import string
 import secrets
 import time
 from slugify import slugify
+import xmpp
+import phonenumbers
 
 import flask
 import werkzeug.security
@@ -42,6 +44,26 @@ else:
     app.secret_key = 'Rfewi89h13uhfevrh9#$8302ieufn'
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
+
+#may throw an exception
+def standardize_phone_number(number):
+    # convert phone number to +12345678900 format 
+    return phonenumbers.format_number(phonenumbers.parse(number, 'US'), phonenumbers.PhoneNumberFormat.E164)
+
+#may throw a variety of exceptions (phone # format, failed to send sms, etc.)
+def send_sms(number, message):
+    number = standardize_phone_number(number)
+
+    jabberid = config['xmpp_user'] #"user@chatterboxtown.us"
+    password = config['xmpp_pass']
+    receiver = f'{number}@cheogram.com' #"+12345678900@cheogram.com"
+
+    jid = xmpp.protocol.JID(jabberid)
+    connection = xmpp.Client(server=jid.getDomain()) #, debug=debug)
+    connection.connect()
+    connection.auth(user=jid.getNode(), password=password, resource=jid.getResource())
+    connection.send(xmpp.protocol.Message(to=receiver, body=message))
 
 
 def list_users():
@@ -184,27 +206,35 @@ def login():
     return flask.render_template('login.html')
 
 
-@app.route('/user_stl_and_team')
+@app.route('/user_initial_info')
 @flask_login.login_required
-def user_stl_and_team():
+def user_initial_info():
     username = flask_login.current_user.id
     user_data = get_user_data(username)
     team = user_data.get('team', 'FTC 0000')
+    phone = user_data.get('phone', '')
     if 'submitted_stl' in user_data:
-        return json.dumps([team, 'submitted', get_stl_url_from_path(user_data['submitted_stl'])])
+        return json.dumps([team, 'submitted', get_stl_url_from_path(user_data['submitted_stl']), phone])
     if 'generated_stl' in user_data:
-        return json.dumps([team, 'generated', get_stl_url_from_path(user_data['generated_stl'])])
-    return json.dumps([team, 'default', DEFAULT_STL_URL])
+        return json.dumps([team, 'generated', get_stl_url_from_path(user_data['generated_stl']), phone])
+    return json.dumps([team, 'default', DEFAULT_STL_URL, phone])
 
 @app.route('/team')
 @flask_login.login_required
 def team():
     username = flask_login.current_user.id
     team = flask.request.args.get('team')
+    phone = flask.request.args.get('phone', None)
     user_data = get_user_data(username)
     user_data['team'] = team
+    if phone is not None:
+        try:
+            user_data['phone'] = standardize_phone_number(phone)
+        except Exception as e:
+            print(f'error reading phone number: {e}')
+            del user_data['phone']
     set_user_data(username, user_data)
-    return 'ok'
+    return user_data.get('phone', 'invalid phone number format')
 
 
 @app.route('/logout')
@@ -271,8 +301,12 @@ def admin_print_done():
     username = flask.request.args.get('username')
     user_data = get_user_data(username)
     user_data['printed'] = True
+    if 'phone' in user_data:
+        try:
+            send_sms(user_data['phone'], "Your custom among us figure is done 3D printing! Come pick it up from FTC 7393's pit area.")
+        except Exception as e:
+            print(f'error sending SMS: {e}')
     set_user_data(username, user_data)
-    #TODO send a text/email?
     return 'ok'
 
 @app.route('/admin/taken')
