@@ -210,7 +210,12 @@ function gen_users() {
                 }
                 const canvas = last_child(document.getElementById(username))
                 doc.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, width, height);
-                doc.text('Scan this QR code to customize and order your\n3D printed among us character, to be printed in\nthe pit area of FTC 7393 electron Volts.', x+60, y+5);
+                doc.text(
+                    'Scan this QR code to customize and order your\n'+
+                    '3D printed among us character. We will notify you\n'+
+                    'when it\'s done so you can get it from our pit area.\n\n'+
+                    'Good luck with the rest of the competition!\n\n'+
+                    '                                    ~ FTC 7393 electron Volts', x+55, y+7);
 
                 //qr codes in a list, to have room for text
                 y += 60;

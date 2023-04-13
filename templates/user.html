@@ -103,6 +103,10 @@ document.getElementById("teamForm").addEventListener("submit", (e) => {
     const phone = document.getElementById('phone').value;
     document.getElementById('save').value = 'saving...';
     myRequest(`/team?team=${encodeURIComponent(team)}&phone=${encodeURIComponent(phone)}`, (res) => {
+        if (res === 'invalid') {
+            alert('invalid phone number, please try again');
+            res = '';
+        }
         document.getElementById('phone').value = res; //sanatized phone number is returned
         document.getElementById('save').value = 'saved!';
         setTimeout(() => {

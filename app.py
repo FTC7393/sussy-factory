@@ -139,6 +139,7 @@ def gen_stl():
         shoes = 'false'
     username = flask_login.current_user.id
     user_data = get_user_data(username)
+    user_data['generated_stl_options'] = {'top_text': top_text, 'bottom_text': bottom_text, 'shoes': shoes}
     # print(top_text, bottom_text)
     shoes_slug = ''
     if shoes == 'true':
@@ -163,6 +164,8 @@ def submit():
     if 'submitted_stl' in user_data:
         return 'already submitted'
     user_data['submitted_stl'] = user_data.get('generated_stl', DEFAULT_STL_PATH)
+    if 'generated_stl_options' in user_data:
+        user_data['submitted_stl_options'] = user_data['generated_stl_options']
     user_data['submitted_time'] = int(time.time() * 1000)
     set_user_data(username, user_data)
     return 'ok'
@@ -232,9 +235,10 @@ def team():
             user_data['phone'] = standardize_phone_number(phone)
         except Exception as e:
             print(f'error reading phone number: {e}')
-            del user_data['phone']
+            if 'phone' in user_data:
+                del user_data['phone']
     set_user_data(username, user_data)
-    return user_data.get('phone', 'invalid phone number format')
+    return user_data.get('phone', 'invalid')
 
 
 @app.route('/logout')
