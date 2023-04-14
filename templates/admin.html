@@ -8,6 +8,7 @@
     <a href="/logout">logout</a> &nbsp; &nbsp; &nbsp; <a href="https://ftc7393.org">ftc7393.org</a> &nbsp; &nbsp; &nbsp; <a target="_blank" href="https://github.com/fTC7393/sussy-factory">source code</a><br/>
     <button onclick="gen_users()">generate users</button> <input id="num_users" type="number" value="12" style="width: 3em">
     <label>color of the day: <input id="color_of_the_day" type="color"></label>
+    queue limit: <input id="queue_limit" type="number" value="" style="width: 5em">
     <details open>
         <summary>print queue</summary>
         <ul id="print"></ul>
@@ -81,6 +82,10 @@ function render() {
             bgcolor = '#f0f'; //magenta
             text = username + ' generated STL preview ';
         }
+        if (user_creds[username].submit_but_queue_full) {
+            bgcolor = '#88f'; //blue
+            text = username + ' submitted but queue full ';
+        }
         const submitted_stl_url = user_creds[username].submitted_stl_url;
         const submitted_time = user_creds[username].submitted_time;
         const printed = user_creds[username].printed;
@@ -143,10 +148,13 @@ function render() {
         elem_delete.onclick = () => {delete_user(username)};
         elem.appendChild(elem_delete);
         elem.appendChild(elem_text);
-        const elem_login = document.createElement("a"); //TODO tmp because it logs out the admin
-        elem_login.href = link; //tmp
-        elem_login.innerHTML = 'login (use incognito)'; //tmp
-        elem_text.appendChild(elem_login); //tmp
+
+        //link to login
+        const elem_login = document.createElement("a");
+        elem_login.href = link;
+        elem_login.innerHTML = 'login (use incognito)';
+        elem_text.appendChild(elem_login);
+
         $(`#${username}`).qrcode({
             text: link,
             // 0: normal
@@ -180,6 +188,17 @@ myRequest('/base_url', (res) => {
 myRequest('/color_of_the_day', (res) => {
     document.getElementById('color_of_the_day').value = res;
 });
+
+myRequest('/queue_limit', (res) => {
+    document.getElementById('queue_limit').value = res;
+});
+
+document.getElementById('queue_limit').onchange = () => {
+    const queue_limit = document.getElementById('queue_limit').value;
+    myRequest(`/admin/set_queue_limit?queue_limit=${encodeURIComponent(queue_limit)}`, (res) => {
+        document.getElementById('queue_limit').value = res;
+    });
+};
 
 document.getElementById('color_of_the_day').onchange = () => {
     const color_of_the_day = document.getElementById('color_of_the_day').value;

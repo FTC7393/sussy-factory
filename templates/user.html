@@ -147,6 +147,10 @@ function submit() {
             if (res === 'already submitted') {
                 document.getElementById('submit').value = 'submitted';
                 alert('You already submitted a model, you may not change it after.');
+            } else if (res === 'queue full') {
+                document.getElementById('submit').value = 'submit';
+                document.getElementById('submit').disabled = false;
+                alert("The print queue is full. Try again tomorrow, or stop by FTC 7393's pit to pick up a non-custom figurine.");
             } else {
                 document.getElementById('submit').value = 'submitted';
                 alert('Submitted successfully. Keep this page open, you will receive an alert when the print is ready to pick up. If you entered your phone number, you will also receive a text.');

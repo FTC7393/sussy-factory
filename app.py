@@ -34,6 +34,13 @@ if 'color_of_the_day' not in config:
     config['color_of_the_day'] = '#ff00ff'
     write_config(config)
 
+if 'queue_limit' not in config:
+    config['queue_limit'] = 12
+    write_config(config)
+
+if 'queue_length' not in config:
+    config['queue_length'] = 0
+    write_config(config)
 
 app = flask.Flask(__name__, static_url_path='')
 #app = Flask(__name__)
@@ -155,7 +162,6 @@ def gen_stl():
     set_user_data(username, user_data)
     return get_stl_url_from_path(stl_file)
 
-#TODO limit on the length of the print queue
 @app.route('/submit')
 @flask_login.login_required
 def submit():
@@ -163,6 +169,13 @@ def submit():
     user_data = get_user_data(username)
     if 'submitted_stl' in user_data:
         return 'already submitted'
+    if config['queue_length'] >= config['queue_limit']:
+        user_data['submit_but_queue_full'] = True
+        set_user_data(username, user_data)
+        return 'queue full'
+    user_data['submit_but_queue_full'] = False
+    config['queue_length'] += 1
+    write_config(config)
     user_data['submitted_stl'] = user_data.get('generated_stl', DEFAULT_STL_PATH)
     if 'generated_stl_options' in user_data:
         user_data['submitted_stl_options'] = user_data['generated_stl_options']
@@ -293,6 +306,11 @@ def admin_delete_user():
     if flask_login.current_user.id != 'admin':
         return unauthorized_handler()
     username = flask.request.args.get('username').replace('.', '')
+    user_data = get_user_data(username)
+    if 'submitted_stl' in user_data:
+        if not ('printed' in user_data and user_data['printed']):
+            config['queue_length'] -= 1
+    write_config(config)
     shutil.rmtree(f'data/users/{username}', ignore_errors=True)
     return 'ok'
 
@@ -304,6 +322,10 @@ def admin_print_done():
         return unauthorized_handler()
     username = flask.request.args.get('username')
     user_data = get_user_data(username)
+    if 'printed' in user_data and user_data['printed']:
+        return 'already set as done'
+    config['queue_length'] -= 1
+    write_config(config)
     user_data['printed'] = True
     if 'phone' in user_data:
         try:
@@ -345,6 +367,27 @@ def admin_set_color_of_the_day():
     config['color_of_the_day'] = flask.request.args['color_of_the_day']
     write_config(config)
     return 'ok'
+
+@app.route('/queue_limit')
+def queue_limit():
+    return str(config['queue_limit'])
+
+@app.route('/queue_length')
+def queue_length():
+    return str(config['queue_length'])
+
+@app.route('/admin/set_queue_limit')
+@flask_login.login_required
+def admin_set_queue_limit():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    try:
+        config['queue_limit'] = int(flask.request.args['queue_limit'])
+        write_config(config)
+    except Exception as e:
+        print(f'queue_limit error: {e}')
+        return 'error'
+    return str(config['queue_limit'])
 
 #TODO max char length on server and client
 #TODO don't accept requests when busy generating an STL already
