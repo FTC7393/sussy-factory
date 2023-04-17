@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import * as Three from "three";
   import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -87,14 +87,17 @@
   });
 
   // https://stackoverflow.com/questions/13853301/why-doesnt-filereader-pass-file-to-loader-load-used-by-three-js-scene
-  const onFileSelected = e => {
-    let reader = new FileReader();
-    let fileObject = e.target.files[0];
+  const loadStl = stlFile => {
+    fetch(stlFile).then(res => res.blob()).then(res => {
+//    let reader = new FileReader();
+//    let fileObject = e.target.files[0];
 
-    reader.onload = function() {
+      console.log(typeof(res))
+    // reader.onload = function() {
       var loader = new STLLoader();
       //console.log(this.result);
-      var geometry = loader.parse(this.result);
+      var geometry = loader.parse(arrayBuffer.from(res));
+      
       //get stil volume
       getSize(geometry);
       getVolume(geometry);
@@ -120,10 +123,12 @@
       mesh.rotation.z = Three.MathUtils.degToRad(-25);
       // Add loaded model to scene
       scene.add(mesh);
-    };
-    reader.readAsArrayBuffer(fileObject);
+    });
+    // reader.readAsArrayBuffer(fileObject);
     //console.log("File Object:", fileObject);
   };
+
+  loadStl(stlFile);
 
   function getSize(geometry) {
     let size = new Three.Vector3();

@@ -76,7 +76,7 @@
   }
 </script>
 
-<Canvas stlFile="" />
+<Canvas stlFile="/stl_src/default-amogus-ev-7393.stl" />
 
 {#if state === 'loading'}
 Loading...
