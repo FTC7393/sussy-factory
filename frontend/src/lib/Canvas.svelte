@@ -134,7 +134,7 @@
         // modal orientation on load
         console.log("ur mom")
 
-        mesh.rotation.x = Three.MathUtils.degToRad(90);
+        mesh.rotation.x = Three.MathUtils.degToRad(-90);
         mesh.rotation.z = Three.MathUtils.degToRad(-25);
         // Add loaded model to scene
         scene.add(mesh);
