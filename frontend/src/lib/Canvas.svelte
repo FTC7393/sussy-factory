@@ -1,10 +1,11 @@
-<script lang="ts">
+<script>
   import { onMount } from "svelte";
   import * as Three from "three";
   import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-  let stlFile, fileinput;
+  let stlFile = "/stl_src/default-amogus-ev-7393.stl";
+  let fileinput;
   let stlSize = { x: 0, y: 0, z: 0 };
   let stlVolume = 0.0;
 
@@ -88,47 +89,61 @@
 
   // https://stackoverflow.com/questions/13853301/why-doesnt-filereader-pass-file-to-loader-load-used-by-three-js-scene
   const loadStl = stlFile => {
+    console.log(stlFile)
     fetch(stlFile).then(res => res.blob()).then(res => {
-//    let reader = new FileReader();
-//    let fileObject = e.target.files[0];
 
-      console.log(typeof(res))
-    // reader.onload = function() {
-      var loader = new STLLoader();
-      //console.log(this.result);
-      var geometry = loader.parse(arrayBuffer.from(res));
-      
-      //get stil volume
-      getSize(geometry);
-      getVolume(geometry);
+      console.log(res)
+      let reader = new FileReader();
+      // let fileObject = e.target.files[0];
 
-      var material = new Three.MeshPhongMaterial({
-        ambient: 0xff5533,
-        color: 0xff5533,
-        specular: 0x111111,
-        shininess: 200
-      });
+      reader.onload = function() {
+        console.log(this.result)
 
-      var mesh = new Three.Mesh(geometry, material);
-      mesh.name = "loadedMeshObject";
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
+        var loader = new STLLoader();
+        //console.log(this.result);
+        var geometry = loader.parse(this.result)
+        // var geometry = loader.load(stlFile,
+    // function (geometry) {
+    //     const mesh = new Three.Mesh(geometry, material)
+    //     scene.add(mesh)
+    // },
+    // (xhr) => {
+    //     console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    // },
+    // (error) => {
+    //     console.log(error)
+    // });
+        //get stil volume
+        getSize(geometry);
+        getVolume(geometry);
 
-      // model offset
-      mesh.position.set(0, 0, 0);
-      // modal orientation on load
-      console.log("ur mom")
+        var material = new Three.MeshPhongMaterial({
+          ambient: 0xff5533,
+          color: 0xff5533,
+          specular: 0x111111,
+          shininess: 200
+        });
 
-      mesh.rotation.x = Three.MathUtils.degToRad(90);
-      mesh.rotation.z = Three.MathUtils.degToRad(-25);
-      // Add loaded model to scene
-      scene.add(mesh);
+        var mesh = new Three.Mesh(geometry, material);
+        mesh.name = "loadedMeshObject";
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        // model offset
+        mesh.position.set(0, 0, 0);
+        // modal orientation on load
+        console.log("ur mom")
+
+        mesh.rotation.x = Three.MathUtils.degToRad(90);
+        mesh.rotation.z = Three.MathUtils.degToRad(-25);
+        // Add loaded model to scene
+        scene.add(mesh);
+      };
+      reader.readAsArrayBuffer(res);
+      console.log("File Object:", fileObject);
     });
-    // reader.readAsArrayBuffer(fileObject);
-    //console.log("File Object:", fileObject);
   };
-
-  loadStl(stlFile);
+  loadStl(stlFile)
 
   function getSize(geometry) {
     let size = new Three.Vector3();
