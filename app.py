@@ -189,8 +189,11 @@ def get_stl_url_from_path(filepath):
 @app.route('/get_stl/<username>/<filename>')
 @flask_login.login_required
 def get_stl(username, filename):
-    filepath = get_stl_path(username, filename)
-    return flask.send_file(filepath)
+    if flask_login.current_user.id == username or flask_login.current_user.id == 'admin':
+        filepath = get_stl_path(username, filename)
+        return flask.send_file(filepath)
+    else:
+        return unauthorized_handler()
 
 
 @app.route('/login', methods=['GET', 'POST'])
