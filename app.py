@@ -126,13 +126,6 @@ def request_loader(request):
 def index():
     return flask.redirect(flask.url_for('login'))
 
-@app.route('/user')
-@flask_login.login_required
-def user():
-    if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
-        return unauthorized_handler()
-    return flask.render_template('user.html')
-
 def scad_escape(s):
     return s.replace('\\', '\\\\').replace('"', '\\"')
 
@@ -227,7 +220,7 @@ def login():
 def user_initial_info():
     username = flask_login.current_user.id
     user_data = get_user_data(username)
-    team = user_data.get('team', 'FTC 0000')
+    team = user_data.get('team', '')
     phone = user_data.get('phone', '')
     if 'submitted_stl' in user_data:
         return json.dumps([team, 'submitted', get_stl_url_from_path(user_data['submitted_stl']), phone])
@@ -393,9 +386,23 @@ def admin_set_queue_limit():
 #TODO don't accept requests when busy generating an STL already
 #TODO cache the stl files based on exact top/bottom text and avoid rebuilding
 
-# @app.route('/stl_gen/<path:path>')
-# def send_stl_gen(path):
-#     return send_from_directory('stl_gen', path)
+
+
+@app.route('/user')
+@app.route('/user/')
+@flask_login.login_required
+def user():
+    if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
+        return unauthorized_handler()
+    return flask.send_from_directory('client/public', 'index.html')
+    # return flask.render_template('user.html')
+
+@app.route('/user/<path:path>')
+@flask_login.login_required
+def send_svelte(path):
+    if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
+        return unauthorized_handler()
+    return flask.send_from_directory('client/public', path)
 
 @app.route('/base_url')
 def get_base_url():
