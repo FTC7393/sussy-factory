@@ -1,10 +1,11 @@
 <script>
   import { onMount } from "svelte";
-  import * as Three from "three";
+  import * as THREE from "three";
   import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-  let stlFile = "/stl_src/default-amogus-ev-7393.stl";
+  export let stlFile = '';
+  export let color = '';
   let fileinput;
   let stlSize = { x: 0, y: 0, z: 0 };
   let stlVolume = 0.0;
@@ -13,56 +14,65 @@
   let degree = Math.PI / 180;
 
   // Create scene
-  const scene = new Three.Scene();
-  scene.background = new Three.Color(0x282c34);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x282c34);
 
   onMount(() => {
-    const renderer = new Three.WebGLRenderer({
+    const renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("canvas")
     });
 
     // There's no reason to set the aspect here because we're going
     // to set it every frame anyway so we'll set it to 2 since 2
     // is the the aspect for the canvas default size (300w/150h = 2)
-    const camera = new Three.PerspectiveCamera(70, 2, 1, 1000);
-    camera.position.z = 100;
-    camera.position.y = 50;
+    const camera = new THREE.PerspectiveCamera(100, 2, 1, 1000);
+    camera.position.z = 40;
+    camera.position.y = 40;
+    camera.position.x = 20;
     camera.rotation.x = -45 * degree;
-
-    const material = new Three.MeshPhongMaterial({
-      color: 0x555555,
-      specular: 0xffffff,
-      shininess: 50,
-      shading: Three.InterpolateSmooth.shading
-    });
 
     // Add controls, targetting the same DOM element
     let controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
     controls.rotateSpeed = 0.5;
+    controls.autoRotate = true;
+    controls.minDistance = 20;
+    controls.maxDistance = 200;
     controls.update();
+
+    //stop autorotate when clicked
+    document.querySelector("canvas").addEventListener('mousedown', () => {
+      controls.autoRotate = false;
+    });
+    document.querySelector("canvas").addEventListener('touchstart', () => {
+      controls.autoRotate = false;
+    });
 
     // Plane
     // Ground (comment out line: "scene.add( plane );" if Ground is not needed...)
-    var plane = new Three.Mesh(
-      new Three.PlaneBufferGeometry(500, 500),
-      new Three.MeshPhongMaterial({
+    var plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(500, 500),
+      new THREE.MeshPhongMaterial({
         color: 0x999999,
         specular: 0x101010
       })
     );
     plane.rotation.x = -90 * degree;
-    plane.position.y = 0;
+    plane.position.y = -15;
     plane.receiveShadow = true;
     scene.add(plane);
 
     // Lighting
-    const frontSpot = new Three.SpotLight(0xeeeece, 2, 0);
-    const frontSpot2 = new Three.SpotLight(0xddddce, 2, 0);
-    frontSpot.position.set(1000, 1000, 1000);
-    frontSpot2.position.set(-500, -500, 500);
+    const frontSpot = new THREE.SpotLight(0xeeeece, 0.5, 0);
+    frontSpot.position.set(1000, 1000, -1000);
     scene.add(frontSpot);
+
+    const frontSpot2 = new THREE.SpotLight(0xddddce, 1, 0);
+    frontSpot2.position.set(-500, -500, -500);
     scene.add(frontSpot2);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
 
     function resizeCanvasToDisplaySize() {
       const canvas = renderer.domElement;
@@ -81,6 +91,7 @@
     // Create an animate function, which will allow you to render your scene and define any movements
     const animate = function() {
       requestAnimationFrame(animate);
+      controls.update();
       renderer.render(scene, camera);
       resizeCanvasToDisplaySize();
     };
@@ -88,23 +99,25 @@
   });
 
   // https://stackoverflow.com/questions/13853301/why-doesnt-filereader-pass-file-to-loader-load-used-by-three-js-scene
-  const loadStl = stlFile => {
+  const loadStl = () => {
     console.log(stlFile)
+    if (stlFile === '') return;
     fetch(stlFile).then(res => res.blob()).then(res => {
 
-      console.log(res)
+      // console.log(res)
       let reader = new FileReader();
       // let fileObject = e.target.files[0];
 
       reader.onload = function() {
-        console.log(this.result)
+        // console.log(this.result)
 
         var loader = new STLLoader();
         //console.log(this.result);
         var geometry = loader.parse(this.result)
+        geometry.computeVertexNormals(true);
         // var geometry = loader.load(stlFile,
     // function (geometry) {
-    //     const mesh = new Three.Mesh(geometry, material)
+    //     const mesh = new THREE.Mesh(geometry, material)
     //     scene.add(mesh)
     // },
     // (xhr) => {
@@ -117,36 +130,40 @@
         getSize(geometry);
         getVolume(geometry);
 
-        var material = new Three.MeshPhongMaterial({
-          ambient: 0xff5533,
-          color: 0xff5533,
+        const material = new THREE.MeshPhongMaterial({
+          color: color,
           specular: 0x111111,
-          shininess: 200
+          shininess: 200,
         });
 
-        var mesh = new Three.Mesh(geometry, material);
+        var mesh = new THREE.Mesh(geometry, material);
         mesh.name = "loadedMeshObject";
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
         // model offset
-        mesh.position.set(0, 0, 0);
+        mesh.position.set(0, -15, 0);
         // modal orientation on load
-        console.log("ur mom")
 
-        mesh.rotation.x = Three.MathUtils.degToRad(90);
-        mesh.rotation.z = Three.MathUtils.degToRad(-25);
+        mesh.rotation.x = THREE.MathUtils.degToRad(-90);
+        mesh.rotation.z = THREE.MathUtils.degToRad(180);
+
+        // scene.remove(scene.getObjectByName('model'));
+        // mesh.name = 'model';
         // Add loaded model to scene
         scene.add(mesh);
       };
       reader.readAsArrayBuffer(res);
-      console.log("File Object:", fileObject);
+      // console.log("File Object:", fileObject);
     });
   };
-  loadStl(stlFile)
+
+
+  $: stlFile, loadStl()
+  $: color, loadStl()
 
   function getSize(geometry) {
-    let size = new Three.Vector3();
+    let size = new THREE.Vector3();
     geometry.computeBoundingBox();
     geometry.boundingBox.getSize(size);
     //console.log("Size:", size)
@@ -157,9 +174,9 @@
     let position = geometry.attributes.position;
     let faces = position.count / 3;
     let sum = 0;
-    let p1 = new Three.Vector3(),
-      p2 = new Three.Vector3(),
-      p3 = new Three.Vector3();
+    let p1 = new THREE.Vector3(),
+      p2 = new THREE.Vector3(),
+      p3 = new THREE.Vector3();
     for (let i = 0; i < faces; i++) {
       p1.fromBufferAttribute(position, i * 3 + 0);
       p2.fromBufferAttribute(position, i * 3 + 1);
@@ -197,7 +214,7 @@
 
 <style>
   .canvas-container {
-    height: 500px;
+    height: max(500px, calc(50vh - 300px));
   }
   canvas {
     width: 100%;
@@ -205,7 +222,7 @@
   }
 </style>
 
-
+download STL: <a id="download" href="{stlFile}">{stlFile}</a><br/>
 <div class="object-cover object-center w-full canvas-container lg:w-1/2 lg:h-auto">
   <canvas class="rounded"></canvas>
 </div>

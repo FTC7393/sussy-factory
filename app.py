@@ -38,9 +38,6 @@ if 'queue_limit' not in config:
     config['queue_limit'] = 12
     write_config(config)
 
-if 'queue_length' not in config:
-    config['queue_length'] = 0
-    write_config(config)
 
 app = flask.Flask(__name__, static_url_path='')
 #app = Flask(__name__)
@@ -55,7 +52,7 @@ login_manager.init_app(app)
 
 #may throw an exception
 def standardize_phone_number(number):
-    # convert phone number to +12345678900 format 
+    # convert phone number to +12345678900 format
     return phonenumbers.format_number(phonenumbers.parse(number, 'US'), phonenumbers.PhoneNumberFormat.E164)
 
 #may throw a variety of exceptions (phone # format, failed to send sms, etc.)
@@ -162,12 +159,12 @@ def submit():
     user_data = get_user_data(username)
     if 'submitted_stl' in user_data:
         return 'already submitted'
-    if config['queue_length'] >= config['queue_limit']:
+    if calculate_queue_length() >= config['queue_limit']:
         user_data['submit_but_queue_full'] = True
         set_user_data(username, user_data)
         return 'queue full'
     user_data['submit_but_queue_full'] = False
-    config['queue_length'] += 1
+    # config['queue_length'] += 1
     write_config(config)
     user_data['submitted_stl'] = user_data.get('generated_stl', DEFAULT_STL_PATH)
     if 'generated_stl_options' in user_data:
@@ -215,36 +212,57 @@ def login():
     return flask.render_template('login.html')
 
 
-@app.route('/user_initial_info')
+@app.route('/user/info')
 @flask_login.login_required
-def user_initial_info():
+def user_info():
     username = flask_login.current_user.id
     user_data = get_user_data(username)
-    team = user_data.get('team', '')
-    phone = user_data.get('phone', '')
+
     if 'submitted_stl' in user_data:
-        return json.dumps([team, 'submitted', get_stl_url_from_path(user_data['submitted_stl']), phone])
-    if 'generated_stl' in user_data:
-        return json.dumps([team, 'generated', get_stl_url_from_path(user_data['generated_stl']), phone])
-    return json.dumps([team, 'default', DEFAULT_STL_URL, phone])
+        status = 'submitted'
+        stl_url = get_stl_url_from_path(user_data['submitted_stl'])
+        stl_options = user_data.get('submitted_stl_options', {})
+    elif 'generated_stl' in user_data:
+        status = 'generated'
+        stl_url = get_stl_url_from_path(user_data['generated_stl'])
+        stl_options = user_data.get('generated_stl_options', {})
+    else:
+        status = 'default'
+        stl_url = DEFAULT_STL_URL
+        stl_options = {}
+    return json.dumps({
+        'team': user_data.get('team', ''),
+        'phone': user_data.get('phone', ''),
+        'status': status,
+        'stl_url': stl_url,
+        'stl_options': stl_options,
+        'printed': user_data.get('printed', False),
+        'taken': user_data.get('taken', False)
+    })
 
 @app.route('/team')
 @flask_login.login_required
 def team():
     username = flask_login.current_user.id
     team = flask.request.args.get('team')
-    phone = flask.request.args.get('phone', None)
+    phone = flask.request.args.get('phone', '')
     user_data = get_user_data(username)
     user_data['team'] = team
-    if phone is not None:
+
+    phone_return = ''
+    if phone == '':
+        if 'phone' in user_data:
+            del user_data['phone']
+    else:
         try:
             user_data['phone'] = standardize_phone_number(phone)
         except Exception as e:
             print(f'error reading phone number: {e}')
+            phone_return = 'invalid'
             if 'phone' in user_data:
                 del user_data['phone']
     set_user_data(username, user_data)
-    return user_data.get('phone', 'invalid')
+    return user_data.get('phone', phone_return)
 
 
 @app.route('/logout')
@@ -300,9 +318,9 @@ def admin_delete_user():
         return unauthorized_handler()
     username = flask.request.args.get('username').replace('.', '')
     user_data = get_user_data(username)
-    if 'submitted_stl' in user_data:
-        if not ('printed' in user_data and user_data['printed']):
-            config['queue_length'] -= 1
+    # if 'submitted_stl' in user_data:
+    #     if not ('printed' in user_data and user_data['printed']):
+    #         config['queue_length'] -= 1
     write_config(config)
     shutil.rmtree(f'data/users/{username}', ignore_errors=True)
     return 'ok'
@@ -317,7 +335,7 @@ def admin_print_done():
     user_data = get_user_data(username)
     if 'printed' in user_data and user_data['printed']:
         return 'already set as done'
-    config['queue_length'] -= 1
+    # config['queue_length'] -= 1
     write_config(config)
     user_data['printed'] = True
     if 'phone' in user_data:
@@ -339,15 +357,6 @@ def admin_taken():
     set_user_data(username, user_data)
     return 'ok'
 
-@app.route('/is_printed_and_not_taken')
-@flask_login.login_required
-def is_printed_and_not_taken():
-    username = flask_login.current_user.id
-    user_data = get_user_data(username)
-    printed = user_data.get('printed', False)
-    taken = user_data.get('taken', False)
-    return json.dumps(printed and not taken)
-
 @app.route('/color_of_the_day')
 def color_of_the_day():
     return config['color_of_the_day']
@@ -362,12 +371,37 @@ def admin_set_color_of_the_day():
     return 'ok'
 
 @app.route('/queue_limit')
+@flask_login.login_required
 def queue_limit():
     return str(config['queue_limit'])
 
 @app.route('/queue_length')
+@flask_login.login_required
 def queue_length():
-    return str(config['queue_length'])
+    return str(calculate_queue_length())
+
+@app.route('/queue_status')
+@flask_login.login_required
+def queue_status():
+    queue_length = calculate_queue_length()
+    queue_limit = config['queue_limit']
+    return f'{queue_length}/{queue_limit}'
+
+@app.route('/queue_spots_left')
+@flask_login.login_required
+def queue_spots_left():
+    queue_length = calculate_queue_length()
+    queue_limit = config['queue_limit']
+    spots_left = queue_limit - queue_length
+    return str(spots_left)
+
+def calculate_queue_length():
+    queue_length = 0
+    for username in list_users():
+        user_data = get_user_data(username)
+        if 'submitted_stl' in user_data and not 'printed' in user_data:
+            queue_length += 1
+    return queue_length
 
 @app.route('/admin/set_queue_limit')
 @flask_login.login_required
@@ -389,7 +423,6 @@ def admin_set_queue_limit():
 
 
 @app.route('/user')
-@app.route('/user/')
 @flask_login.login_required
 def user():
     if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page

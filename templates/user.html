@@ -73,12 +73,12 @@ function load_callback() {
 var stl_viewer = null;
 var initial_camera_state = null;
 
-myRequest('/user_initial_info', (res) => {
+myRequest('/user/info', (res) => {
     const json = JSON.parse(res);
-    const team = json[0];
-    const status = json[1];
-    const stl_url = json[2];
-    const phone = json[3];
+    const team = json.team;
+    const status = json.status;
+    const stl_url = json.stl_url;
+    const phone = json.phone;
     document.getElementById('team').value = team;
     document.getElementById('phone').value = phone;
     if (status === 'submitted') {
@@ -164,17 +164,22 @@ function submit() {
 function check_if_print_done_loop() {
     setInterval(() => {
         console.log('print done?')
-        myRequest('/is_printed_and_not_taken', (res) => {
-            const is_printed_and_not_taken = JSON.parse(res);
-            if (is_printed_and_not_taken) {
-                alert("Your 3D print is done! Go pick it up from FTC 7393's pit area.")
-            }
+
+        fetch("/user/info")
+        .then(res => res.json())
+        .then(json => {
+          console.log(json)
+          printed = json.printed;
+          taken = json.taken;
+
+          if (printed && !taken) {
+            alert("Your 3D print is done! Go pick it up from FTC 7393's pit area.")
+            have_alerted_for_print_done = true;
+            state = 'printed';
+          }
         });
     }, 5000);
 }
-
-//TODO loading bar
-//TODO should we warn the user if they change the text and don't preview before submitting? maybe gray out submit button if any text changes?
     </script>
   </body>
 </html>
