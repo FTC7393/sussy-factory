@@ -1,7 +1,6 @@
 <svelte:head>
   <title>eV 7393's amogus emporium!</title>
   <!-- <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script> -->
-  <script src="/js/stl_viewer.min.js"></script>
 </svelte:head>
 <script>
   let state = 'loading';
