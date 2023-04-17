@@ -394,15 +394,15 @@ def admin_set_queue_limit():
 def user():
     if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
         return unauthorized_handler()
-    return flask.send_from_directory('client/public', 'index.html')
+    return flask.send_from_directory('frontend/dist', 'index.html')
     # return flask.render_template('user.html')
 
-@app.route('/user/<path:path>')
+@app.route('/assets/<path:path>')
 @flask_login.login_required
 def send_svelte(path):
     if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
         return unauthorized_handler()
-    return flask.send_from_directory('client/public', path)
+    return flask.send_from_directory('frontend/dist/assets', path)
 
 @app.route('/base_url')
 def get_base_url():

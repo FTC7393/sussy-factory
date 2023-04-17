@@ -1,8 +1,13 @@
 <svelte:head>
   <title>eV 7393's amogus emporium!</title>
   <!-- <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script> -->
+
 </svelte:head>
+
 <script>
+  import Canvas from "../src/lib/Canvas.svelte";
+  import "./app.css";
+
   let state = 'loading';
 
   let team;
@@ -10,37 +15,13 @@
   let stl_url;
   let phone;
 
-var initial_camera_state = null;
+  var initial_camera_state = null;
 
   function test() {
   }
 
   function load_model() {
-    stl_viewer = new StlViewer(document.getElementById("stl_cont"), {models: [{id: 0, filename: stl_url}], model_loaded_callback: load_callback, auto_rotate: true});
-
-  // document.getElementById("hotspot-camera-view-demo")
-  //     const modelViewer2 = document.querySelector("#hotspot-camera-view-demo");
-  //     // modelViewer2.src = stl_url;
-  //     const annotationClicked = (annotation) => {
-  //       let dataset = annotation.dataset;
-  //       modelViewer2.cameraTarget = dataset.target;
-  //       modelViewer2.cameraOrbit = dataset.orbit;
-  //       modelViewer2.fieldOfView = '45deg';
-  //     }
-  //     modelViewer2.querySelectorAll('button').forEach((hotspot) => {
-  //       hotspot.addEventListener('click', () => annotationClicked(hotspot));
-  //     });
-  //   var exporter = new THREE.GLTFExporter();
-  //   var loader = new THREE.STLLoader();
-  //   loader.load(URL.createObjectURL(stl_url), (geometry) => {
-  //     var material = new THREE.MeshStandardMaterial();
-  //     var object = new THREE.Mesh(geometry,material);
-  //     exporter.parse(object, (json) => {
-  //       var string = JSON.stringify(json);
-  //       var blob = new Blob([string], {type:'text/plain'});
-  //       viewer.src = URL.createObjectURL(blob);
-  //     } );
-  //   } );
+    // stl_viewer = new StlViewer(document.getElementById("stl_cont"), {models: [{id: 0, filename: stl_url}], model_loaded_callback: load_callback, auto_rotate: true});
   }
 
   function load_callback() {
@@ -69,7 +50,7 @@ var initial_camera_state = null;
     status = json[1];
     stl_url = json[2];
     phone = json[3];
-    
+
     if (team === '') {
       state = 'info';
     } else {
@@ -95,6 +76,8 @@ var initial_camera_state = null;
   }
 </script>
 
+<Canvas stlFile="" />
+
 {#if state === 'loading'}
 Loading...
 {:else if state === 'info'}
@@ -119,28 +102,6 @@ TODO you have picked up your figurine
 error
 {/if}
 
-<!-- <div class="model-container" >
-<model-viewer
-	id="hotspot-camera-view-demo"
-	src="/stl_src/default-amogus-ev-7393.stl"
-	alt="Thor and the Midgard Serpent"
-	camera-controls
-	touch-action="none"
-	camera-orbit="-8.142746deg 68.967deg 0.6179899m"
-	camera-target="-0.003m 0.0722m 0.0391m"
-	field-of-view="45deg"
-	min-field-of-view="25deg"
-	max-field-of-view="45deg"
-	interpolation-decay="200"
-	min-camera-orbit="auto
-	auto 5%"
-	poster="ThorAndTheMidgardSerpent.webp" 
-	ar
->
-
-</model-viewer>
-
-</div> -->
 
 <div id="stl_cont" style="width: 100vw; height: 80vh; overflow: hidden;"></div>
 
@@ -155,21 +116,3 @@ error
   <li>phone: {phone}</li>
 </ul>
 <button on:click={test}>test</button>
-
-<style>
-  .container{
-        width:100%;
-        height: 600px;
-  }     
-  .model-container{
-        width:100%;
-        height: 600px;
-  }     
-  model-viewer{
-    display: block;
-    position: relative;
-    contain: strict;
-    width: 100%;
-    height: 100%;
-  }
-</style>
