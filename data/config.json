@@ -2,5 +2,6 @@
   "color_of_the_day": "#ff00ff",
   "admin_password_hash": "sha256$LA5NkBhrSWIovz9i$3c26ccd038d0c0b559b939de0d4dae4d6a2960e6afecad8f2e47e40930f414bf",
   "app.secret_key": "3984hjefopindh32084#@DC#$tgfu8209j3f24f@#Fqdfev9r8h4eowi",
-  "base_url": "http://localhost:5000"
+  "base_url": "http://localhost:5000",
+  "queue_limit": 12
 }

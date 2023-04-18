@@ -15,11 +15,12 @@
 
   // Create scene
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x282c34);
+  scene.background = null
 
   onMount(() => {
     const renderer = new THREE.WebGLRenderer({
-      canvas: document.querySelector("canvas")
+      canvas: document.querySelector("canvas"),
+      alpha: true
     });
 
     // There's no reason to set the aspect here because we're going
@@ -50,17 +51,17 @@
 
     // Plane
     // Ground (comment out line: "scene.add( plane );" if Ground is not needed...)
-    var plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(500, 500),
-      new THREE.MeshPhongMaterial({
-        color: 0x999999,
-        specular: 0x101010
-      })
-    );
-    plane.rotation.x = -90 * degree;
-    plane.position.y = -15;
-    plane.receiveShadow = true;
-    scene.add(plane);
+    // var plane = new THREE.Mesh(
+    //   new THREE.PlaneGeometry(500, 500),
+    //   new THREE.MeshPhongMaterial({
+    //     color: 0x999999,
+    //     specular: 0x101010
+    //   })
+    // );
+    // plane.rotation.x = -90 * degree;
+    // plane.position.y = -15;
+    // plane.receiveShadow = true;
+    // scene.add(plane);
 
     // Lighting
     const frontSpot = new THREE.SpotLight(0xeeeece, 0.5, 0);
@@ -222,7 +223,6 @@
   }
 </style>
 
-download STL: <a id="download" href="{stlFile}">{stlFile}</a><br/>
 <div class="object-cover object-center w-full canvas-container lg:w-1/2 lg:h-auto">
   <canvas class="rounded"></canvas>
 </div>
