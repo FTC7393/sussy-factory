@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import platform
 import shutil
 import json
 import string
@@ -146,7 +147,11 @@ def gen_stl():
     # print(stl_file)
     with open(f'data/users/{username}/parameters.scad', 'w') as f:
         f.write(f'dir = "../../.."; top_text = "{scad_escape(top_text)}"; bottom_text = "{scad_escape(bottom_text)}"; shoes = {shoes};')
-    os.system(f'openscad data/users/{username}/amogus-custom.scad -o {stl_file}')
+
+    if platform.system() == "Darwin":
+        os.system(f'/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD data/users/{username}/amogus-custom.scad -o {stl_file}')
+    else:
+        os.system(f'openscad data/users/{username}/amogus-custom.scad -o {stl_file}')
 #    return send_file('{stl_file}')
     user_data['generated_stl'] = stl_file
     set_user_data(username, user_data)

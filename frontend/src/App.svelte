@@ -3,9 +3,17 @@
 	<link rel='icon' type='image/png' href='/favicon.png'>
 </svelte:head>
 
+<style>
+input:checked + svg {
+  display: block;
+}
+</style>
+
+
 <script>
   import Canvas from "../src/lib/Canvas.svelte";
-  // import "./app.css";
+  import MenuBar from "./lib/MenuBar.svelte";
+  import "./app.css";
 
   let state = 'loading';
 
@@ -186,70 +194,142 @@
   setInterval(loop, 5000);
 </script>
 
-<a href="/logout">logout</a> &nbsp; &nbsp; &nbsp; <a href="https://ftc7393.org">ftc7393.org</a> &nbsp; &nbsp; &nbsp; <a target="_blank" href="https://github.com/fTC7393/sussy-factory">source code</a><br/>
 
-{#if state === 'loading'}
+<div class=" flex flex-col w-auto h-full sm:flex-row sm:min-h-screen ">
+
+  <MenuBar></MenuBar>
+  {#if state === 'loading'}
   <h1>Loading...</h1>
 
-{:else if state === 'info'}
-  <h1>Enter Your Info</h1>
-  <label>team/name (e.g. FTC 7393 or Joe Schmoe): <input type="text" id="team" name="team" bind:value="{team}" /></label><br/>
-  <label>(optional) phone number to be notified when the print is done (SMS charges may apply): <input type="text" id="phone" name="phone" bind:value="{phone}" /></label><br/>
-  <button on:click={save_info}>next</button>
+  {:else if state === 'info'}
+    <h1>Enter Your Info</h1>
+    <label>team/name (e.g. FTC 7393 or Joe Schmoe): <input type="text" id="team" name="team" bind:value="{team}" /></label>
+    <label>(optional) phone number to be notified when the print is done (SMS charges may apply): <input type="text" id="phone" name="phone" bind:value="{phone}" /></label>
+    <button on:click={save_info}>next</button>
 
-{:else if state === 'customize'}
-  <br/>
-  <button on:click={edit_info}>edit team info</button>
-  <h1>Customize Your Figurine</h1>
-  <label>top text: <input type="text" id="top_text" name="top_text" bind:value={top_text} /></label><br/>
-  <label>bottom text (optional): <input type="text" id="bottom_text" name="bottom_text" bind:value={bottom_text} /></label><br/>
-  <label>shoes?<input type="checkbox" id="shoes" name="shoes" bind:checked={shoes}></label><br/>
-  <button on:click={generate}>customize</button>
-  <p>If no bottom text is provided, the top text will be moved to the middle.</p>
-  <p style="font-weight: bold">NOTE: Any more than 6 characters on a row will likely be unreadable!</p>
-  <details>
-    <summary>special chars</summary>
-  <p>This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
-  <p style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
-  </details>
-  <p>color of the day: <span style:background={color_of_the_day_hex}>{color_of_the_day_hex} <span style="color: white">{color_of_the_day_hex}</span></span></p>
-  <br/>
-  <Canvas stlFile={stl_url} color={color_of_the_day} />
+  {:else if state === 'customize'}
+    <div class="flex flex-row">
+      <div class="font-bold text-2xl">
+        Customize Your Figurine
+      </div>
+    </div>
 
-{:else if state === 'generating'}
+    <div class="flex flex-row">
+
+      <div class="flex flex-col">
+        <div class="flex flex-col">
+          <div>top text</div>
+          <input
+            type="text"
+            id="top_text"
+            name="top_text"
+            bind:value={top_text}
+            class="input border border-gray-400 appearance-none rounded w-full px-3 py-3 pt-5 pb-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow"
+          />
+        </div>
+        <div class="flex flex-col">
+          <div>bottom text (optional): </div>
+          <input
+            type="text"
+            id="bottom_text"
+            name="bottom_text"
+            bind:value={bottom_text}
+            class="input border border-gray-400 appearance-none rounded w-full px-3 py-3 pt-2 pb-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow"
+          />
+        </div>
+
+        <label class="flex justify-start items-start">
+          <div class="bg-white border-2 rounded border-gray-400 w-6 h-6 flex flex-shrink-0 justify-center items-center mr-2 focus-within:border-blue-500">
+            <input type="checkbox" id="shoes" name="shoes" bind:checked={shoes} class="opacity-0 absolute">
+            <svg class="fill-current hidden w-4 h-4 text-green-500 pointer-events-none" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"></path></svg>
+          </div>
+          <div class="select-none">Drip Shoes?</div>
+        </label>
+        <div class="flex-grow"></div>
+        <div class="flex flex-col space-y-3 mx-3">
+          <button class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={edit_info}>
+            edit team info
+          </button>
+          <button on:click={generate} class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
+            customize
+          </button>
+        </div>
+
+
+      </div>
+      <Canvas stlFile={stl_url} color={color_of_the_day} />
+
+
+    </div>
+    <p>If no bottom text is provided, the top text will be moved to the middle.</p>
+    <p style="font-weight: bold">NOTE: Any more than 6 characters on a row will likely be unreadable!</p>
+    <details>
+      <summary>special chars</summary>
+    <p>This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
+    <p style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
+    </details>
+    <p>color of the day: <span style:background={color_of_the_day_hex}>{color_of_the_day_hex} <span style="color: white">{color_of_the_day_hex}</span></span></p>
+    <br/>
+
+
+
+  {:else if state === 'generating'}
   <h1>Generating 3D Preview...</h1>
   <p>This will usually take about 10-20 seconds.</p>
 
-{:else if state === 'review'}
-  <h1>Review Your Figurine</h1>
-  <p>Review the figurine and confirm you want to submit it to be 3D printed. You cannot make any changes after submitting.</p>
-  <button on:click={customize}>back to edit</button>
-  <button on:click={submit}>submit</button>
-  <p>spots left in print queue: {queue_spots_left}</p>
-  <br/>
-  <Canvas stlFile={stl_url} color={color_of_the_day} />
+  {:else if state === 'review'}
+  <div class="font-bold">
+    Review Your Figurine
+  </div>
 
-{:else if state === 'waiting'}
+  <div class="flex flex-row">
+    <div class="flex flex-col">
+    <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={customize}>
+      edit
+    </button>
+    <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={submit}>
+      submit
+    </button>
+      <div class="font-semibold w-full py-1 sm:p-0 text-lg sm:text-2xl ">
+        Review the figurine and confirm you want to submit it to be 3D printed. You cannot make any changes after submitting.
+      </div>
+    <div class="font-bold">
+      spots left in print queue: {queue_spots_left}
+    </div>
+    <a id="download" href="{stl_url} " class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
+      download STL
+    </a>
+
+
+  </div>
+
+  <Canvas stlFile={stl_url} color={color_of_the_day} />
+  </div>
+
+
+
+  {:else if state === 'waiting'}
   <h1>Waiting for Figurine to be Printed</h1>
   <p>Submitted successfully. Keep this page open, an alert will pop up when your figurine is ready to pick up.</p>
-  {#if phone}
-    You will also recieve a text message at the number you provided earlier.
-  {:else}
-    You can also provide a phone number to get a text message when your print is done.
-  {/if}
-  <button on:click={edit_info}>edit phone number</button>
+    {#if phone}
+      You will also recieve a text message at the number you provided earlier.
+    {:else}
+      You can also provide a phone number to get a text message when your print is done.
+    {/if}
+    <button on:click={edit_info}>edit phone number</button>
 
-{:else if state === 'printed'}
+  {:else if state === 'printed'}
   <h1>Done Printing!</h1>
   Your figurine has printed, come pick it up from FTC 7393's pit area.
 
-{:else if state === 'taken'}
+  {:else if state === 'taken'}
   <h1>Done :]</h1>
   <p>Thank you for picking up your print from our pit area!</p>
   <p>You can't make any more print requests, but you can still customize a figurine, download the STL, and print it yourself. (Or just admire the 3D preview :)</p>
   <button on:click={customize}>back to generator</button>
 
-{:else}
+  {:else}
   Error invalid state: {state}. Please reload the page.
 
-{/if}
+  {/if}
+</div>
