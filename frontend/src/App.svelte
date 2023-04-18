@@ -276,6 +276,8 @@ input:checked + svg {
   {:else if state === 'generating'}
   <h1>Generating 3D Preview...</h1>
   <p>This will usually take about 10-20 seconds.</p>
+  <img style="width: min(90vw, 500px)" alt="tablet upload task among us" src="/img/among-us-upload.gif" /><br/><br/>
+  
 
   {:else if state === 'review'}
   <div class="font-bold">

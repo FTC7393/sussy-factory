@@ -281,7 +281,7 @@ def logout():
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return 'Unauthorized', 401
+    return '<h1>Unauthorized</h1><a href="/login">login</a><br/><br/><img style="width: min(90vw, 500px)" alt="card swipe task among us" src="/img/among-us-card-swipe.gif" />', 401
 
 @app.route('/admin')
 @flask_login.login_required
