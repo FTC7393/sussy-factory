@@ -122,6 +122,9 @@ function render() {
                         });
                     }
                 }
+                const phone_elem = document.createElement('span')
+                phone_elem.innerText = ' phone: ' + user_creds[username].phone + ' ';
+                print_item.appendChild(phone_elem);
                 print_item.appendChild(print_queue_button);
                 document.getElementById('print').appendChild(print_item);
             }

@@ -39,8 +39,8 @@ input:checked + svg {
   let taken;
   let color_of_the_day;
   let color_of_the_day_hex;
-  let top_text = 'eV';
-  let bottom_text = '7393';
+  let top_text = '';
+  let bottom_text = '';
   let shoes = false;
   let generated = false;
   let submitted = false;
