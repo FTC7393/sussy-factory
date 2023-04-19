@@ -11,20 +11,20 @@ logo = "/img/EV_Logo_2022.png"
     <div id="menu" class="flex flex-row sm:h-full sm:flex-col self-start space-x-2 sm:space-y-3 sm:mx-6 sm:pt-4">
 
         <img src={logo} class=" rounded-md w-10 sm:w-40" alt="team">
-        <div class="font-bold w-10 sm:w-auto text-black dark:text-white my-auto">Team 7393</div>
+        <div class="font-bold w-10 sm:w-auto text-black dark:text-white my-auto">FTC 7393</div>
 
-        <div class="flex sm:flex-col flex-row space-x-3 w-full mx-0">
-            <a class="transition flex flex-row items-center grow items-center px-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" href="/logout">
+        <div class="flex sm:flex-col flex-row space-x-3 sm:space-x-0 w-full mx-0">
+            <!-- <a class="transition flex flex-row items-center grow items-center px-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" href="/logout">
                 <div class="font-bold w-full flex-grow py-2 sm:p-0 text-xl sm:text-2xl">
                     logout
                 </div>
-            </a>
-            <a class="transition flex flex-row items-center grow items-center px-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" href="https://ftc7393.org">
+            </a> -->
+            <a class="transition flex flex-row items-center px-2 sm:px-4 my-1 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md w-full" target="_blank" href="https://ftc7393.org">
                 <div class="font-bold w-full flex-grow py-2 sm:p-0 text-xl sm:text-2xl">
                     ftc7393.org
                 </div>
             </a>
-            <a class="transition flex flex-row items-center grow items-center px-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" target="_blank" href="https://github.com/fTC7393/sussy-factory">
+            <a class="transition flex flex-row items-center px-2 sm:px-4 my-1 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md w-full" target="_blank" href="https://github.com/fTC7393/sussy-factory">
                 <div class="font-bold w-full flex-grow py-2 sm:p-0 text-xl sm:text-2xl">
                     source
                 </div>

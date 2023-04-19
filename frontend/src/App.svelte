@@ -8,6 +8,17 @@ input:checked + svg {
   display: block;
 }
 
+@font-face {
+  font-family: "amogus";
+  src: url("/font/Amongus-3zjxX.ttf");
+}
+.font-amogus {
+  font-family: "amogus", "Roboto", serif;
+  font-size: 3em;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -197,54 +208,57 @@ input:checked + svg {
   setInterval(loop, 5000);
 </script>
 
-
-<div class=" flex flex-col w-auto h-full sm:flex-row sm:min-h-screen ">
-
-  <MenuBar></MenuBar>
-  {#if state === 'loading'}
+<div class="flex flex-col sm:flex-row m-0 min-h-screen" style="background-image: url('/img/background.png'); background-size: cover 100%; background-repeat: repeat-x;">
+  <MenuBar />
+{#if state === 'loading'}
   <h1>Loading...</h1>
 
-  {:else if state === 'info'}
-    <div class="flex flex-col space-y-3">
-      <div class="font-bold text-2xl mt-2">Enter Your Info</div>
-
-      <div class="flex flex-col mx-4">
-        <div class="font-bold">team/name (e.g. FTC 7393 or Joe Schmoe): </div>
-        <input class="px-6 input border border-gray-400 appearance-none rounded w-full px-3 py-3 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="team" name="team" bind:value="{team}" />
-
-      </div>
-      <div class="flex flex-col mx-4">
-        <div class="font-bold">(optional) phone number to be notified when the print is done (SMS charges may apply): </div>
-        <input class="px-6 input border border-gray-400 appearance-none rounded w-full px-3 py-3 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="phone" name="phone" bind:value="{phone}" />
-
-      </div>
-
+{:else if state === 'info'}
+  <div class="flex flex-col space-y-3 p-4">
+    <div class="font-amogus font-bold text-2xl">
+      Enter Your Info
     </div>
 
-    <button on:click={save_info}>next</button>
+    <div class="flex flex-col">
+      <div class="font-medium">Team/Name (e.g. FTC 7393 or Joe Schmoe): </div>
+      <input class="px-4 input border border-gray-400 appearance-none rounded w-full py-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="team" name="team" bind:value="{team}" />
 
-  {:else if state === 'customize'}
+    </div>
+    <div class="flex flex-col">
+      <div class="font-medium">(optional) Phone Number to be notified when the print is done (SMS charges may apply): </div>
+      <input class="px-4 input border border-gray-400 appearance-none rounded w-full py-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="phone" name="phone" bind:value="{phone}" />
+
+    </div>
+    <!-- <button class="transition py-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md m-4 text-center" on:click={save_info}><div class="font-bold">next</div></button> -->
+    <!-- <button class="m-auto flex w-fit py-9 px-10 font-bold" style="background: url(/img/arrow.png) no-repeat;" on:click={save_info}>Next</button> -->
+    <button class="flex flex-col m-auto font-bold transition p-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={save_info}>
+      <img class="m-auto" alt="proceed" src="/img/proceed.png" />
+    </button>
+  </div>
+
+{:else if state === 'customize'}
+  <div class="flex-col p-4">
     <div class="flex flex-row">
-      <div class="font-bold text-2xl">
-        Customize Your Figurine
+      <div class="font-amogus font-bold text-2xl">
+        Customize Figurine
       </div>
     </div>
 
     <div class="flex flex-row">
 
-      <div class="flex flex-col">
+      <div class="flex flex-col w-7/12">
         <div class="flex flex-col">
-          <div>top text</div>
+          <div class="font-medium">Top Text</div>
           <input
             type="text"
             id="top_text"
             name="top_text"
             bind:value={top_text}
-            class="input border border-gray-400 appearance-none rounded w-full px-3 py-3 pt-5 pb-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow"
+            class="input border border-gray-400 appearance-none rounded w-full px-3 py-3 pt-2 pb-2 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow"
           />
         </div>
         <div class="flex flex-col">
-          <div>bottom text (optional): </div>
+          <div class="font-medium">Bottom Text (optional): </div>
           <input
             type="text"
             id="bottom_text"
@@ -254,100 +268,125 @@ input:checked + svg {
           />
         </div>
 
-        <label class="flex justify-start items-start">
+        <label class="flex justify-start items-start my-3">
           <div class="bg-white border-2 rounded border-gray-400 w-6 h-6 flex flex-shrink-0 justify-center items-center mr-2 focus-within:border-blue-500">
             <input type="checkbox" id="shoes" name="shoes" bind:checked={shoes} class="opacity-0 absolute">
             <svg class="fill-current hidden w-4 h-4 text-green-500 pointer-events-none" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"></path></svg>
           </div>
-          <div class="select-none">Drip Shoes?</div>
+          <div class="select-none font-medium">Drip Shoes?</div>
         </label>
-        <div class="flex-grow"></div>
-        <div class="flex flex-col space-y-3 mx-3">
-          <button on:click={generate} class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
-            customize
+        <!-- <div class="flex-grow"></div> -->
+        <div class="flex flex-col space-y-3">
+          <button on:click={generate} class="font-bold transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center">
+            generate preview
+            <!-- <img class="m-auto" alt="customize" src="/img/customize.png" /> -->
           </button>
-          <button class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={edit_info}>
+          <button class="font-medium transition py-2 bg-gray-300 dark:text-gray-800 shadow-2xl rounded-md text-center" on:click={edit_info}>
             edit team info
           </button>
+          <p class="font-bold">NOTE: More than 6 characters per row will be unreadable!</p>
+          <p class="font-medium">color of the day: <span style:background={color_of_the_day_hex}>{color_of_the_day_hex} <span style="color: white">{color_of_the_day_hex}</span></span></p>
         </div>
-
-
       </div>
-      <Canvas stlFile={stl_url} color={color_of_the_day} />
-
-
+      <div class="w-5/12 lg:h-auto">
+        <Canvas stlFile={stl_url} color={color_of_the_day} />
+      </div>
     </div>
-    <p>If no bottom text is provided, the top text will be moved to the middle.</p>
-    <p style="font-weight: bold">NOTE: Any more than 6 characters on a row will likely be unreadable!</p>
     <details>
-    <summary>special chars</summary>
-    <p>This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
-    <p style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
+      <summary class="font-medium py-2">add special chars</summary>
+      <p class="font-medium">This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
+      <p class="font-normal" style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
     </details>
-    <p>color of the day: <span style:background={color_of_the_day_hex}>{color_of_the_day_hex} <span style="color: white">{color_of_the_day_hex}</span></span></p>
-    <br/>
-
-
-
-  {:else if state === 'generating'}
-  <h1>Generating 3D Preview...</h1>
-  <p>This will usually take about 10-20 seconds.</p>
-  <img style="width: min(90vw, 500px)" alt="tablet upload task among us" src="/img/among-us-upload.gif" /><br/><br/>
-  
-
-  {:else if state === 'review'}
-  <div class="font-bold">
-    Review Your Figurine
+    <a href="{stl_url}" class="flex flex-col transition p-2 bg-gray-300 dark:text-gray-800 shadow-2xl rounded-md text-center w-full">
+      <div>
+        download STL (to print yourself instead)
+      </div>
+    </a>
   </div>
 
-  <div class="flex flex-row">
-    <div class="flex flex-col basis-1/2">
-      <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={customize}>
-        edit
-      </button>
-      <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={submit}>
-        submit
-      </button>
+{:else if state === 'generating'}
+  <div class="p-4">
+    <div class="font-amogus font-bold text-2xl">
+      Generating Preview
+    </div>
+    <p class="font-medium">This will usually take about 10-20 seconds.</p>
+    <img style="width: min(90vw, 500px)" alt="tablet upload task among us" src="/img/among-us-upload.gif" /><br/><br/>
+  </div>
 
-      <div class="font-semibold w-full py-1 sm:p-0 text-lg sm:text-2xl ">
-        Review the figurine and confirm you want to submit it to be 3D printed. You cannot make any changes after submitting.
-      </div>
-
-      <div class="font-bold">
-        spots left in print queue: {queue_spots_left}
-      </div>
-      <a id="download" href="{stl_url} " class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
-        download STL
-      </a>
+{:else if state === 'review'}
+  <div class="flex flex-col p-4">
+    <div class="font-amogus font-bold text-2xl">
+      Review Figurine
     </div>
 
-  <Canvas stlFile={stl_url} color={color_of_the_day} class=""/>
+    <div class="flex flex-row">
+      <div class="flex flex-col basis-1/2 space-y-3">
+        <div class="font-medium w-full py-1">
+          Review the model and either submit it to be 3D printed, or continue customizing.
+        </div>
+       <button class="flex flex-row font-bold transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center" on:click={customize}>
+          <!-- edit -->
+          <img class="m-auto" alt="customize" src="/img/customize.png" />
+        </button>
+        <button class="font-bold transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center" on:click={submit}>
+          submit
+        </button>
+
+        <div class="font-medium">
+          spots left in print queue: {queue_spots_left}
+        </div>
+        <!-- <a href="{stl_url}" class="transition py-2 sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md m-4 text-center">
+          download STL
+        </a> -->
+      </div>
+      <div class="w-1/2 lg:h-auto">
+        <Canvas stlFile={stl_url} color={color_of_the_day} />
+      </div>
+    </div>
   </div>
 
-
-
-  {:else if state === 'waiting'}
-  <h1>Waiting for Figurine to be Printed</h1>
-  <p>Submitted successfully. Keep this page open, an alert will pop up when your figurine is ready to pick up.</p>
+{:else if state === 'waiting'}
+  <div class="p-4">
+    <div class="font-amogus font-bold text-2xl">
+      Waiting for Figurine to be Printed
+    </div>
+    <p class="font-medium my-2">Submitted successfully.</p>
+    <p class="font-medium my-2">Keep this page open, an alert will pop up when your figurine is ready to pick up.</p>
     {#if phone}
-      You will also recieve a text message at the number you provided earlier.
+      <p class="font-medium my-2">You will also recieve a text message at the number you provided earlier.</p>
     {:else}
-      You can also provide a phone number to get a text message when your print is done.
+      <p class="font-bold my-2">You can also provide a phone number to get a text message when your print is done.</p>
     {/if}
-    <button on:click={edit_info}>edit phone number</button>
+    <button class="font-bold my-2 transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center w-full" on:click={edit_info}>edit phone number</button>
+    <img class="w-full p-10 max-w-xl" alt="" src="/img/radio.png" />
+  </div>
 
-  {:else if state === 'printed'}
-  <h1>Done Printing!</h1>
-  Your figurine has printed, come pick it up from FTC 7393's pit area.
+{:else if state === 'printed'}
+  <div>
+    <div  class="p-4">
+      <div class="font-amogus font-bold text-2xl">
+        Done Printing!
+      </div>
+      <p class="font-medium my-2">Your figurine has printed, come pick it up from FTC 7393's pit area.</p>
+    </div>
+    <img alt="done" src="/img/done.png" class="w-full" />
+  </div>
 
-  {:else if state === 'taken'}
-  <h1>Done :]</h1>
-  <p>Thank you for picking up your print from our pit area!</p>
-  <p>You can't make any more print requests, but you can still customize a figurine, download the STL, and print it yourself. (Or just admire the 3D preview :)</p>
-  <button on:click={customize}>back to generator</button>
+{:else if state === 'taken'}
+  <div class="p-4">
+    <div class="font-amogus font-bold text-2xl">
+      Thanks :]
+    </div>
+    <div class="flex flex-col w-full">
+      <img alt="thumbs up" src="/img/amongs-up.png" class="w-20 block m-auto my-4" />
+    </div>
+    <p class="font-medium my-2">Thank you for picking up your print from our pit area!</p>
+    <p class="font-medium my-2">You can't make any more print requests, but you can still customize a figurine, download the STL, and print it yourself. (Or just admire the 3D preview :)</p>
+    <button class="font-bold my-2 transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center w-full" on:click={customize}>back to generator</button>
+  </div>
 
-  {:else}
-  Error invalid state: {state}. Please reload the page.
+{:else}
+  <h1>Error invalid state: {state}. Please reload the page.</h1>
 
-  {/if}
+{/if}
 </div>

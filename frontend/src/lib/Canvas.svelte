@@ -27,8 +27,8 @@
     // to set it every frame anyway so we'll set it to 2 since 2
     // is the the aspect for the canvas default size (300w/150h = 2)
     const camera = new THREE.PerspectiveCamera(100, 2, 1, 1000);
-    camera.position.z = 40;
-    camera.position.y = 40;
+    camera.position.z = 20; //change z and y to change figure size in view
+    camera.position.y = 20; //
     camera.position.x = 20;
     camera.rotation.x = -45 * degree;
 
@@ -59,7 +59,7 @@
     //   })
     // );
     // plane.rotation.x = -90 * degree;
-    // plane.position.y = -15;
+    // plane.position.y = -25;
     // plane.receiveShadow = true;
     // scene.add(plane);
 
@@ -143,11 +143,11 @@
         mesh.receiveShadow = true;
 
         // model offset
-        mesh.position.set(0, -15, 0);
+        mesh.position.set(0, -25, 0);
         // modal orientation on load
 
         mesh.rotation.x = THREE.MathUtils.degToRad(-90);
-        mesh.rotation.z = THREE.MathUtils.degToRad(180);
+        mesh.rotation.z = THREE.MathUtils.degToRad(210);
 
         // scene.remove(scene.getObjectByName('model'));
         // mesh.name = 'model';
@@ -213,17 +213,5 @@
 
 </script>
 
-<style>
-  .canvas-container {
-    height: max(500px, calc(50vh - 300px));
-  }
-  canvas {
-    width: 100%;
-    height: 100%;
-  }
-</style>
-
-<div class="object-cover object-center w-full canvas-container lg:w-1/2 lg:h-auto">
-  <canvas class="rounded"></canvas>
-</div>
+<canvas class="rounded w-full h-full"></canvas>
 
