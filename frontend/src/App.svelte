@@ -7,13 +7,16 @@
 input:checked + svg {
   display: block;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 </style>
 
 
 <script>
   import Canvas from "../src/lib/Canvas.svelte";
   import MenuBar from "./lib/MenuBar.svelte";
-  import "./app.css";
 
   let state = 'loading';
 
@@ -202,9 +205,22 @@ input:checked + svg {
   <h1>Loading...</h1>
 
   {:else if state === 'info'}
-    <h1>Enter Your Info</h1>
-    <label>team/name (e.g. FTC 7393 or Joe Schmoe): <input type="text" id="team" name="team" bind:value="{team}" /></label>
-    <label>(optional) phone number to be notified when the print is done (SMS charges may apply): <input type="text" id="phone" name="phone" bind:value="{phone}" /></label>
+    <div class="flex flex-col space-y-3">
+      <div class="font-bold text-2xl mt-2">Enter Your Info</div>
+
+      <div class="flex flex-col mx-4">
+        <div class="font-bold">team/name (e.g. FTC 7393 or Joe Schmoe): </div>
+        <input class="px-6 input border border-gray-400 appearance-none rounded w-full px-3 py-3 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="team" name="team" bind:value="{team}" />
+
+      </div>
+      <div class="flex flex-col mx-4">
+        <div class="font-bold">(optional) phone number to be notified when the print is done (SMS charges may apply): </div>
+        <input class="px-6 input border border-gray-400 appearance-none rounded w-full px-3 py-3 focus focus:border-lmao-yellow focus:outline-none active:outline-none active:border-lmao-yellow" type="text" id="phone" name="phone" bind:value="{phone}" />
+
+      </div>
+
+    </div>
+
     <button on:click={save_info}>next</button>
 
   {:else if state === 'customize'}
@@ -247,11 +263,11 @@ input:checked + svg {
         </label>
         <div class="flex-grow"></div>
         <div class="flex flex-col space-y-3 mx-3">
-          <button class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={edit_info}>
-            edit team info
-          </button>
           <button on:click={generate} class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
             customize
+          </button>
+          <button class="transition flex flex-row items-center items-center sm:px-4 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={edit_info}>
+            edit team info
           </button>
         </div>
 
@@ -264,7 +280,7 @@ input:checked + svg {
     <p>If no bottom text is provided, the top text will be moved to the middle.</p>
     <p style="font-weight: bold">NOTE: Any more than 6 characters on a row will likely be unreadable!</p>
     <details>
-      <summary>special chars</summary>
+    <summary>special chars</summary>
     <p>This uses the Roboto font, so some unicode characters are available. Here's a few of them for more convenient copy/paste:</p>
     <p style="font-family: Roboto;">⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉¼½¾©®™¡¢£¤¥¦§¨ª«¬¯°±´µ¶·¸º»¿×æ÷ʭΔΘεφ҈҉†‡•‣․‥…›※‼‽‾‿⁀⁁⁂⁃⁄⁊⁋⁌⁍⁎⁏⁐⁑⁕⁖⁘⁙⁚⁛⁜⁝⁞√∞∫≈≠≤≥␣◊⸎⸙⸚ꙮ</p>
     </details>
@@ -285,27 +301,27 @@ input:checked + svg {
   </div>
 
   <div class="flex flex-row">
-    <div class="flex flex-col">
-    <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={customize}>
-      edit
-    </button>
-    <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={submit}>
-      submit
-    </button>
+    <div class="flex flex-col basis-1/2">
+      <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={customize}>
+        edit
+      </button>
+      <button class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md" on:click={submit}>
+        submit
+      </button>
+
       <div class="font-semibold w-full py-1 sm:p-0 text-lg sm:text-2xl ">
         Review the figurine and confirm you want to submit it to be 3D printed. You cannot make any changes after submitting.
       </div>
-    <div class="font-bold">
-      spots left in print queue: {queue_spots_left}
+
+      <div class="font-bold">
+        spots left in print queue: {queue_spots_left}
+      </div>
+      <a id="download" href="{stl_url} " class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
+        download STL
+      </a>
     </div>
-    <a id="download" href="{stl_url} " class="transition flex flex-row items-center px-2 sm:px-4 space-x-1 5s:space-x-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md">
-      download STL
-    </a>
 
-
-  </div>
-
-  <Canvas stlFile={stl_url} color={color_of_the_day} />
+  <Canvas stlFile={stl_url} color={color_of_the_day} class=""/>
   </div>
 
 
