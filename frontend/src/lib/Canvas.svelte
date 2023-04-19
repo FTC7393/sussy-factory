@@ -88,13 +88,14 @@
         // set render target sizes here
       }
     }
+    resizeCanvasToDisplaySize();
 
     // Create an animate function, which will allow you to render your scene and define any movements
     const animate = function() {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
-      resizeCanvasToDisplaySize();
+      // resizeCanvasToDisplaySize();
     };
     animate();
   });
