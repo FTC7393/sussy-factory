@@ -272,9 +272,18 @@ function render() {
     sort('#started > li')
     sort('#printed > li')
     sort('#taken > li')
-    if (document.getElementById('print').children.length === 0) {
-        document.getElementById('print').innerText = 'print queue is empty';
-    }
+    // if (document.getElementById('submitted').children.length === 0) {
+    //     document.getElementById('submitted').innerText = 'queue is empty';
+    // }
+    // if (document.getElementById('started').children.length === 0) {
+    //     document.getElementById('started').innerText = 'queue is empty';
+    // }
+    // if (document.getElementById('printed').children.length === 0) {
+    //     document.getElementById('printed').innerText = 'queue is empty';
+    // }
+    // if (document.getElementById('taken').children.length === 0) {
+    //     document.getElementById('taken').innerText = 'queue is empty';
+    // }
 }
 
 myRequest('/base_url', (res) => {
