@@ -12,10 +12,24 @@
     <button onclick="gen_users()">generate users</button> <input id="num_users" type="number" value="12" style="width: 3em">
     <label>color of the day: <input id="color_of_the_day" type="color"></label>
     queue limit: <input id="queue_limit" type="number" value="" style="width: 5em">
+    <br/>
+    <br/>
     <details open>
         <summary>print queue</summary>
-        <ul id="print"></ul>
+        <h2>Submitted</h2>
+        <ul id="submitted"></ul>
+        <h2>Started</h2>
+        <ul id="started"></ul>
+        <h2>Printed</h2>
+        <ul id="printed"></ul>
+        <h2>Taken</h2>
+        <details>
+            <summary>taken</summary>
+            <ul id="taken"></ul>
+        </details>
     </details>
+    <br/>
+    <br/>
     <details>
         <summary id="users">users</summary>
         <div id="qr" style="margin: 20px"></div>
@@ -71,18 +85,21 @@ function get_user_creds(callback) { //callback is optional
 
 function render() {
     document.getElementById('qr').innerHTML = '';
-    document.getElementById('print').innerHTML = '';
+    document.getElementById('submitted').innerHTML = '';
+    document.getElementById('started').innerHTML = '';
+    document.getElementById('printed').innerHTML = '';
+    document.getElementById('taken').innerHTML = '';
     Object.keys(user_creds).forEach(username => {
         const password = user_creds[username].password;
         const team = user_creds[username].team;
         var text = username + ' never logged in ';
         var bgcolor = '#ff0'; //yellow
         if (user_creds[username].logged_in) {
-            bgcolor = '#0ff'; //indigo
+            bgcolor = '#8ff'; //indigo
             text = username + ' has logged in ';
         }
         if (user_creds[username].generated_stl) {
-            bgcolor = '#f0f'; //magenta
+            bgcolor = '#f8f'; //magenta
             text = username + ' generated STL preview ';
         }
         if (user_creds[username].submit_but_queue_full) {
@@ -91,51 +108,113 @@ function render() {
         }
         const submitted_stl_url = user_creds[username].submitted_stl_url;
         const submitted_time = user_creds[username].submitted_time;
+        const started_printing = user_creds[username].started_printing;
         const printed = user_creds[username].printed;
         const taken = user_creds[username].taken;
+        const expired = user_creds[username].expired;
         if (submitted_stl_url) {
-            bgcolor = '#f00'; //red
+            bgcolor = '#f33'; //red
             text = username + ' submitted to print ';
-            if (!taken) {
-                const print_item = document.createElement("li");
-                print_item.innerText = `time: ${new Date(submitted_time)}, user: ${username}, team: ${team}, download: `;
-                const elem_stl_a = document.createElement("a");
-                const stl_basename = submitted_stl_url.split('/').reverse()[0];
-                elem_stl_a.innerText = `${stl_basename}`;
-                elem_stl_a.href = submitted_stl_url;
-                print_item.appendChild(elem_stl_a);
-                const print_queue_button = document.createElement("button");
-                if (!printed) {
-                    print_queue_button.innerText = "print done"
-                    print_queue_button.onclick = () => {
-                        print_queue_button.disabled = true;
-                        myRequest(`/admin/print_done?username=${username}`, () => {
-                            print_queue_button.disabled = false;
-                            get_user_creds();
-                        });
-                    }
-                } else {
-                    print_queue_button.innerText = "team took the print"
-                    print_queue_button.onclick = () => {
-                        myRequest(`/admin/taken?username=${username}`, () => {
+            const print_item = document.createElement("li");
+            print_item.innerText = `time: ${new Date(submitted_time)}, user: ${username}, team: ${team}, download: `;
+            const elem_stl_a = document.createElement("a");
+            const stl_basename = submitted_stl_url.split('/').reverse()[0];
+            elem_stl_a.innerText = `${stl_basename}`;
+            elem_stl_a.href = submitted_stl_url;
+            print_item.appendChild(elem_stl_a);
+            const print_queue_button = document.createElement("button");
+            const undo_button = document.createElement("button");
+            const phone_elem = document.createElement('span')
+            phone_elem.innerText = ' phone: ' + user_creds[username].phone + ' ';
+            print_item.appendChild(phone_elem);
+            if (taken) {
+                undo_button.innerText = 'undo taken';
+                undo_button.onclick = () => {
+                    undo_button.disabled = true;
+                    myRequest(`/admin/undo_taken?username=${username}`, () => {
+                        undo_button.disabled = false;
+                        get_user_creds();
+                    });
+                }
+                print_item.appendChild(undo_button);
+                document.getElementById('taken').appendChild(print_item);
+            } else if (printed) {
+                print_queue_button.innerText = "team took the print"
+                print_queue_button.onclick = () => {
+                    myRequest(`/admin/taken?username=${username}`, () => {
+                        get_user_creds();
+                    });
+                }
+                undo_button.innerText = 'undo print done';
+                undo_button.onclick = () => {
+                    undo_button.disabled = true;
+                    myRequest(`/admin/undo_print_done?username=${username}`, () => {
+                        undo_button.disabled = false;
+                        get_user_creds();
+                    });
+                }
+                print_item.appendChild(print_queue_button);
+                print_item.appendChild(undo_button);
+                document.getElementById('printed').appendChild(print_item);
+            } else if (started_printing) {
+                print_queue_button.innerText = "print done"
+                print_queue_button.onclick = () => {
+                    print_queue_button.disabled = true;
+                    myRequest(`/admin/print_done?username=${username}`, () => {
+                        print_queue_button.disabled = false;
+                        get_user_creds();
+                    });
+                }
+                undo_button.innerText = 'undo print started';
+                undo_button.onclick = () => {
+                    undo_button.disabled = true;
+                    myRequest(`/admin/undo_print_started?username=${username}`, () => {
+                        undo_button.disabled = false;
+                        get_user_creds();
+                    });
+                }
+                print_item.appendChild(print_queue_button);
+                print_item.appendChild(undo_button);
+                document.getElementById('started').appendChild(print_item);
+            } else {
+                print_queue_button.innerText = "print started"
+                print_queue_button.onclick = () => {
+                    print_queue_button.disabled = true;
+                    myRequest(`/admin/print_started?username=${username}`, () => {
+                        print_queue_button.disabled = false;
+                        get_user_creds();
+                    });
+                }
+                undo_button.innerText = 'undo submit';
+                undo_button.onclick = () => {
+                    if (confirm('are you sure? this will remove it from the print queue and allow the team to edit')) {
+                        undo_button.disabled = true;
+                        myRequest(`/admin/undo_submit?username=${username}`, () => {
+                            undo_button.disabled = false;
                             get_user_creds();
                         });
                     }
                 }
-                const phone_elem = document.createElement('span')
-                phone_elem.innerText = ' phone: ' + user_creds[username].phone + ' ';
-                print_item.appendChild(phone_elem);
                 print_item.appendChild(print_queue_button);
-                document.getElementById('print').appendChild(print_item);
+                print_item.appendChild(undo_button);
+                document.getElementById('submitted').appendChild(print_item);
             }
         }
+        if (started_printing) {
+            bgcolor = '#a33'; //dark red
+            text = username + ' started printing ';
+        }
         if (printed) {
-            bgcolor = '#fa0'; //orange
+            bgcolor = '#fa3'; //orange
             text = username + ' printed and notified ';
         }
         if (taken) {
-            bgcolor = '#0f0'; //green
+            bgcolor = '#8f8'; //green
             text = username + ' took the print ';
+        }
+        if (expired) {
+            bgcolor = '#333'; //dark gray
+            text = text + 'EXPIRED ';
         }
 
         text = 'team: ' + team + ', user: ' + text;
@@ -149,10 +228,22 @@ function render() {
         document.getElementById('qr').appendChild(elem);
         const elem_text = document.createElement("p");
         elem_text.innerHTML = text;
+
+        const elem_expire = document.createElement("button");
+        if (expired) {
+            elem_expire.innerHTML = 'undo expire';
+            elem_expire.onclick = () => {undo_expire_user(username)};
+        } else {
+            elem_expire.innerHTML = 'expire';
+            elem_expire.onclick = () => {expire_user(username)};
+        }
+        elem.appendChild(elem_expire);
+
         const elem_delete = document.createElement("button");
         elem_delete.innerHTML = 'delete';
         elem_delete.onclick = () => {delete_user(username)};
         elem.appendChild(elem_delete);
+
         elem.appendChild(elem_text);
 
         //link to login
@@ -177,7 +268,10 @@ function render() {
         // elem.children[elem.children.length-1].id = `${username}_canvas`;
         // $("#qr").
     });
-    sort('#print > li')
+    sort('#submitted > li')
+    sort('#started > li')
+    sort('#printed > li')
+    sort('#taken > li')
     if (document.getElementById('print').children.length === 0) {
         document.getElementById('print').innerText = 'print queue is empty';
     }
@@ -267,6 +361,18 @@ function gen_users() {
 
 function delete_user(username) {
     myRequest(`/admin/delete_user?username=${username}`, () => {
+        get_user_creds();
+    });
+}
+
+function expire_user(username) {
+    myRequest(`/admin/expire_user?username=${username}`, () => {
+        get_user_creds();
+    });
+}
+
+function undo_expire_user(username) {
+    myRequest(`/admin/undo_expire_user?username=${username}`, () => {
         get_user_creds();
     });
 }

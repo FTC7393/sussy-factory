@@ -164,6 +164,8 @@ def submit():
     user_data = get_user_data(username)
     if 'submitted_stl' in user_data:
         return 'already submitted'
+    if 'expired' in user_data and user_data['expired']:
+        return 'expired'
     if calculate_queue_length() >= config['queue_limit']:
         user_data['submit_but_queue_full'] = True
         set_user_data(username, user_data)
@@ -177,6 +179,25 @@ def submit():
     user_data['submitted_time'] = int(time.time() * 1000)
     set_user_data(username, user_data)
     return 'ok'
+
+@app.route('/admin/undo_submit')
+@flask_login.login_required
+def admin_undo_submit():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username')
+    user_data = get_user_data(username)
+    if 'submitted_stl' in user_data:
+        del user_data['submitted_stl']
+    if 'submit_but_queue_full' in user_data:
+        del user_data['submit_but_queue_full']
+    if 'submitted_stl_options' in user_data:
+        del user_data['submitted_stl_options']
+    if 'submitted_stl_options' in user_data:
+        del user_data['submitted_time']
+    set_user_data(username, user_data)
+    return 'ok'
+
 
 def get_stl_path(username, filename):
     username = username.replace('/', '').replace('.', '')
@@ -245,7 +266,8 @@ def user_info():
         'stl_url': stl_url,
         'stl_options': stl_options,
         'printed': user_data.get('printed', False),
-        'taken': user_data.get('taken', False)
+        'taken': user_data.get('taken', False),
+        'expired': user_data.get('expired', False)
     })
 
 @app.route('/team')
@@ -319,6 +341,29 @@ def admin_new_users():
         new_usernames.append(username)
     return json.dumps(new_usernames)
 
+@app.route('/admin/expire_user')
+@flask_login.login_required
+def admin_expire_user():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username').replace('.', '')
+    user_data = get_user_data(username)
+    user_data['expired'] = True
+    set_user_data(username, user_data)
+    return 'ok'
+
+@app.route('/admin/undo_expire_user')
+@flask_login.login_required
+def admin_undo_expire_user():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username').replace('.', '')
+    user_data = get_user_data(username)
+    if 'expired' in user_data:
+        del user_data['expired']
+    set_user_data(username, user_data)
+    return 'ok'
+
 @app.route('/admin/delete_user')
 @flask_login.login_required
 def admin_delete_user():
@@ -333,6 +378,29 @@ def admin_delete_user():
     shutil.rmtree(f'data/users/{username}', ignore_errors=True)
     return 'ok'
 
+
+@app.route('/admin/print_started')
+@flask_login.login_required
+def admin_print_started():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username')
+    user_data = get_user_data(username)
+    user_data['started_printing'] = True
+    set_user_data(username, user_data)
+    return 'ok'
+
+@app.route('/admin/undo_print_started')
+@flask_login.login_required
+def admin_undo_print_started():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username')
+    user_data = get_user_data(username)
+    if 'started_printing' in user_data:
+        del user_data['started_printing']
+        set_user_data(username, user_data)
+    return 'ok'
 
 @app.route('/admin/print_done')
 @flask_login.login_required
@@ -354,6 +422,18 @@ def admin_print_done():
     set_user_data(username, user_data)
     return 'ok'
 
+@app.route('/admin/undo_print_done')
+@flask_login.login_required
+def admin_undo_print_done():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username')
+    user_data = get_user_data(username)
+    if 'printed' in user_data:
+        del user_data['printed']
+    set_user_data(username, user_data)
+    return 'ok'
+
 @app.route('/admin/taken')
 @flask_login.login_required
 def admin_taken():
@@ -362,6 +442,18 @@ def admin_taken():
     username = flask.request.args.get('username')
     user_data = get_user_data(username)
     user_data['taken'] = True
+    set_user_data(username, user_data)
+    return 'ok'
+
+@app.route('/admin/undo_taken')
+@flask_login.login_required
+def admin_undo_taken():
+    if flask_login.current_user.id != 'admin':
+        return unauthorized_handler()
+    username = flask.request.args.get('username')
+    user_data = get_user_data(username)
+    if 'taken' in user_data:
+        del user_data['taken']
     set_user_data(username, user_data)
     return 'ok'
 

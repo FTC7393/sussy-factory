@@ -44,6 +44,7 @@ input:checked + svg {
   let shoes = false;
   let generated = false;
   let submitted = false;
+  let expired = false;
   let have_alerted_for_print_done = false;
   let queue_spots_left = 'Loading...';
 
@@ -60,6 +61,8 @@ input:checked + svg {
     phone = json.phone;
     printed = json.printed;
     taken = json.taken;
+    expired = json.expired;
+
     if (json.stl_options) {
       if (json.stl_options.top_text) top_text = json.stl_options.top_text;
       if (json.stl_options.bottom_text) bottom_text = json.stl_options.bottom_text;
@@ -82,8 +85,6 @@ input:checked + svg {
       } else {
         state = 'customize';
       }
-    } else if (generated) {
-      state = 'review';
     } else if (submitted) {
       if (taken) {
         state = 'taken';
@@ -92,6 +93,10 @@ input:checked + svg {
       } else {
         state = 'waiting';
       }
+    } else if (expired) {
+      state = 'expired';
+    } else if (generated) {
+      state = 'review';
     }
   });
   function save_info() {
@@ -164,6 +169,9 @@ input:checked + svg {
           alert('You already submitted a model, you may not change it after.');
           state = 'waiting';
           submitted = true;
+        } else if (res === 'expired') {
+          alert("Sorry, your QR code has expired.")
+          state = 'expired';
         } else if (res === 'queue full') {
           alert("The print queue is full. Try again tomorrow, or stop by FTC 7393's pit to pick up a non-custom figurine.");
           state = 'customize';
@@ -184,14 +192,15 @@ input:checked + svg {
       .then(res => res.text())
       .then(res => queue_spots_left = res);
     }
-    if (state === 'waiting' || state === 'printed') {
-      console.log('print done?')
-
+    if (state === 'waiting' || state === 'printed' || state === 'expired') {
       fetch('/user/info')
       .then(res => res.json())
       .then(json => {
         console.log(json)
         decode_user_info(json);
+        if (state === 'expired' && !expired) {
+          state = 'customize';
+        }
         // if (printed && !taken) {
         if (printed && !have_alerted_for_print_done) {
           have_alerted_for_print_done = true;
@@ -386,6 +395,19 @@ input:checked + svg {
       </div>
       <p class="font-medium my-2">Thank you for picking up your print from our pit area!</p>
       <p class="font-medium my-2">You can't make any more print requests, but you can still customize a figurine, download the STL, and print it yourself. (Or just admire the 3D preview :)</p>
+      <button class="font-bold my-2 transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center w-full" on:click={customize}>back to generator</button>
+    </div>
+
+  {:else if state === 'expired'}
+    <div class="p-4">
+      <div class="font-amogus font-bold text-2xl">
+        Expired :(
+      </div>
+      <div class="flex flex-col w-full">
+        <img alt="among us ghost" src="/img/yellow-ghost.png" class="w-20 block m-auto my-4" />
+      </div>
+      <p class="font-medium my-2">Unfortunately your QR code has expired.</p>
+      <p class="font-medium my-2">You can still customize a figurine, download the STL, and print it yourself. (Or just admire the 3D preview :)</p>
       <button class="font-bold my-2 transition py-2 bg-lmao-yellow dark:text-gray-800 shadow-2xl rounded-md text-center w-full" on:click={customize}>back to generator</button>
     </div>
 
