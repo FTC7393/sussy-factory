@@ -1,6 +1,5 @@
 <svelte:head>
   <title>eV 7393's amogus emporium!</title>
-	<link rel='icon' type='image/png' href='/favicon.png'>
 </svelte:head>
 
 <style>

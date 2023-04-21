@@ -122,7 +122,8 @@ def request_loader(request):
 
 @app.route('/')
 def index():
-    return flask.redirect(flask.url_for('login'))
+    return flask.render_template('index.html')
+    # return flask.redirect(flask.url_for('login'))
 
 def scad_escape(s):
     return s.replace('\\', '\\\\').replace('"', '\\"')
