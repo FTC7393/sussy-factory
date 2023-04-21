@@ -532,10 +532,10 @@ def user():
     # return flask.render_template('user.html')
 
 @app.route('/assets/<path:path>')
-@flask_login.login_required
+# @flask_login.login_required
 def send_svelte(path):
-    if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
-        return unauthorized_handler()
+    # if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
+        # return unauthorized_handler()
     return flask.send_from_directory('frontend/dist/assets', path)
 
 @app.route('/base_url')
