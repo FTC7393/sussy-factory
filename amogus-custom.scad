@@ -25,7 +25,7 @@ module my_text(t) {
 //    text(t, halign="center", $fn=60, font="Kimberley:style=Bold");
 //    text(t, halign="center", $fn=60, font="Pakenham:style=Regular"); //good
 //    text(t, halign="center", $fn=60, font="Quadrangle:style=Bold");
-    text(t, halign="center", $fn=60, font="Roboto Condensed:style=Bold"); //good
+    text(t, halign="center", $fn=10, font="Roboto Condensed:style=Bold"); //good
 //    text(t, halign="center", $fn=60, font="Unispace:style=Bold");
 //    text(t, halign="center", $fn=60, font="Upheaval TT BRK:style=Bold");
 //    text(t, halign="center", $fn=60, font="Yielding BRK:style=Bold");
