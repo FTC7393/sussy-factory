@@ -9,6 +9,7 @@ import time
 from slugify import slugify
 import xmpp
 import phonenumbers
+import random
 
 import flask
 import werkzeug.security
@@ -18,6 +19,7 @@ DEFAULT_STL_PATH = 'static/stl_src/default-amogus-ev-7393.stl'
 DEFAULT_STL_URL = '/stl_src/default-amogus-ev-7393.stl'
 
 os.makedirs('data/users', exist_ok=True)
+os.makedirs('data/generated', exist_ok=True)
 
 def write_config(config):
     with open('data/config.json', 'w') as f:
@@ -120,11 +122,6 @@ def request_loader(request):
     return user
 
 
-@app.route('/')
-def index():
-    return flask.render_template('index.html')
-    # return flask.redirect(flask.url_for('login'))
-
 def scad_escape(s):
     return s.replace('\\', '\\\\').replace('"', '\\"')
 
@@ -157,6 +154,45 @@ def gen_stl():
     user_data['generated_stl'] = stl_file
     set_user_data(username, user_data)
     return get_stl_url_from_path(stl_file)
+
+
+@app.route('/gen_stl2')
+def gen_stl2():
+    top_text = flask.request.args.get('top_text', '')
+    bottom_text = flask.request.args.get('bottom_text', '')
+    shoes = flask.request.args.get('shoes', '')
+    if shoes != 'true':
+        shoes = 'false'
+    shoes_slug = ''
+    if shoes == 'true':
+        shoes_slug = 'shoes'
+    slug = slugify(f'amogus {top_text} {bottom_text} {shoes_slug}')
+    stl_id = ''.join(random.choice('0123456789abcdef') for _ in range(10)) #10 digit hex
+    stl_dir = f'data/generated/{stl_id}'
+    stl_file = f'{stl_dir}/{slug}.stl'
+    os.makedirs(stl_dir, exist_ok=True)
+
+    # stl_url = stl_file[len('data'):]
+    stl_url = f'/generated/{stl_id}/{slug}.stl'
+
+    shutil.copyfile('amogus-custom.scad', f'{stl_dir}/amogus-custom.scad')
+
+    with open(f'{stl_dir}/parameters.scad', 'w') as f:
+        f.write(f'dir = "../../.."; top_text = "{scad_escape(top_text)}"; bottom_text = "{scad_escape(bottom_text)}"; shoes = {shoes};')
+
+    if platform.system() == "Darwin":
+        os.system(f'/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD {stl_dir}/amogus-custom.scad -o {stl_file}')
+    else:
+        os.system(f'openscad {stl_dir}/amogus-custom.scad -o {stl_file}')
+
+#    return send_file('{stl_file}')
+    return stl_url
+
+@app.route('/generated/<stl_id>/<stl_name>')
+def generated(stl_id, stl_name):
+    stl_id = stl_id.replace('/', '')
+    stl_name = stl_name.replace('/', '')
+    return flask.send_file(f'data/generated/{stl_id}/{stl_name}')
 
 @app.route('/submit')
 @flask_login.login_required
@@ -536,7 +572,16 @@ def user():
 def send_svelte(path):
     # if flask_login.current_user.id == 'admin': #don't allow the admin to access the user page
         # return unauthorized_handler()
-    return flask.send_from_directory('frontend/dist/assets', path)
+    if os.path.exists(f'frontend/dist/assets/{path}'):
+        return flask.send_from_directory('frontend/dist/assets', path)
+    else:
+        return flask.send_from_directory('frontend-index/dist/assets', path)
+
+@app.route('/')
+def index():
+    return flask.send_from_directory('frontend-index/dist', 'index.html')
+    # return flask.render_template('index.html')
+    # return flask.redirect(flask.url_for('login'))
 
 @app.route('/base_url')
 def get_base_url():
